@@ -795,6 +795,10 @@ class InstallPluginCommand extends EnvironmentAwareCommand {
     /** Load information about the plugin, and verify it can be installed with no errors. */
     private PluginInfo loadPluginInfo(Terminal terminal, Path pluginRoot, Environment env) throws Exception {
         final PluginInfo info = PluginInfo.readFromProperties(pluginRoot);
+        terminal.println("Name of the plugin: " + info.getName());
+        terminal.println("Class name of the plugin: " + info.getClassname());
+        terminal.println("Description of the plugin: " + info.getDescription());
+        terminal.println("Folder name of the plugin: " + info.getFolderName());
         if (info.hasNativeController()) {
             throw new IllegalStateException("plugins can not have native controllers");
         }

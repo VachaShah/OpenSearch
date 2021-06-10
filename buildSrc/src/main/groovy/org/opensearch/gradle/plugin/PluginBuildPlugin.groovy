@@ -87,6 +87,7 @@ class PluginBuildPlugin implements Plugin<Project> {
             String name = extension1.name
             project.archivesBaseName = name
             project.description = extension1.description
+            String folderName = extension1.folderName
 
             if (extension1.name == null) {
                 throw new InvalidUserDataException('name is a required setting for opensearchplugin')
@@ -97,6 +98,9 @@ class PluginBuildPlugin implements Plugin<Project> {
             if (extension1.classname == null) {
                 throw new InvalidUserDataException('classname is a required setting for opensearchplugin')
             }
+            if (extension1.folderName == null) {
+                folderName = ""
+            }
 
             Map<String, String> properties = [
                     'name'                : extension1.name,
@@ -105,6 +109,7 @@ class PluginBuildPlugin implements Plugin<Project> {
                     'opensearchVersion'   : Version.fromString(VersionProperties.getOpenSearch()).toString(),
                     'javaVersion'         : project.targetCompatibility as String,
                     'classname'           : extension1.classname,
+                    'folderName'          : folderName,
                     'extendedPlugins'     : extension1.extendedPlugins.join(','),
                     'hasNativeController' : extension1.hasNativeController,
                     'requiresKeystore'    : extension1.requiresKeystore
