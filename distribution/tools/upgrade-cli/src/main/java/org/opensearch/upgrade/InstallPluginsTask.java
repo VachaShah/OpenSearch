@@ -12,11 +12,15 @@ import org.opensearch.cli.Terminal;
 import org.opensearch.common.collect.Tuple;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+
+import static org.opensearch.plugins.InstallPluginCommand.OFFICIAL_PLUGINS;
 
 /**
  * Installs the list of plugins using the opensearch-plugin command.
- */
+*/
 class InstallPluginsTask implements UpgradeTask {
     private static final String ERROR_MSG = "Error installing plugin %s. Please install it manually.";
 
@@ -29,24 +33,34 @@ class InstallPluginsTask implements UpgradeTask {
         }
         terminal.println("Installing core plugins ...");
         final ProcessBuilder processBuilder = new ProcessBuilder();
+        List<String> manualPlugins = new ArrayList<>();
+        for (String plugin : OFFICIAL_PLUGINS) {
+            terminal.println("  " + plugin);
+        }
         for (String plugin : taskInput.getPlugins()) {
-            // TODO - validate if plugin is an official plugin for OpenSearch.
-            final String command = taskInput.getOpenSearchBin().resolve("opensearch-plugin") + " install " + plugin;
-            if (OS.WINDOWS == OS.current()) {
-                processBuilder.command("cmd.exe", "/c", command);
-            } else {
-                processBuilder.command("sh", "-c", command);
-            }
-            try {
-                final Process process = processBuilder.inheritIO().start();
-                if (process.waitFor() != 0) {
-                    terminal.errorPrint(Terminal.Verbosity.NORMAL, String.format(Locale.getDefault(), ERROR_MSG, plugin));
+            if (OFFICIAL_PLUGINS.contains(plugin)) {
+                final String command = taskInput.getOpenSearchBin().resolve("opensearch-plugin") + " install " + plugin;
+                if (OS.WINDOWS == OS.current()) {
+                    processBuilder.command("cmd.exe", "/c", command);
+                } else {
+                    processBuilder.command("sh", "-c", command);
                 }
-            } catch (IOException | InterruptedException e) {
-                terminal.errorPrint(Terminal.Verbosity.NORMAL, String.format(Locale.getDefault(), ERROR_MSG, plugin) + e.getMessage());
+                try {
+                    final Process process = processBuilder.inheritIO().start();
+                    if (process.waitFor() != 0) {
+                        terminal.errorPrint(Terminal.Verbosity.NORMAL, String.format(Locale.getDefault(), ERROR_MSG, plugin));
+                    }
+                } catch (IOException | InterruptedException e) {
+                    terminal.errorPrint(Terminal.Verbosity.NORMAL, String.format(Locale.getDefault(), ERROR_MSG, plugin) + e.getMessage());
+                }
+            } else {
+                manualPlugins.add(plugin);
             }
         }
-        terminal.println("Success!" + System.lineSeparator());
+        if (!manualPlugins.isEmpty()) {
+            terminal.println("Please install the following custom plugins manually: " + manualPlugins);
+        }
+        terminal.println("Success!" + System.lineSeparator());    
     }
 
     private enum OS {
