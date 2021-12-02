@@ -46,7 +46,14 @@ import org.opensearch.test.OpenSearchTestCase;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class AwsEc2ServiceImplTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testAWSCredentialsWithSystemProviders() {
         final AWSCredentialsProvider credentialsProvider = AwsEc2ServiceImpl.buildCredentials(
@@ -93,6 +100,7 @@ public class AwsEc2ServiceImplTests extends OpenSearchTestCase {
         assertThat(credentials.getAWSSecretKey(), is(""));
         assertSettingDeprecationsAndWarnings(
             new String[] {},
+            assertedWarnings,
             "Setting [discovery.ec2.access_key] is set but [discovery.ec2.secret_key] is not, which will be unsupported in future"
         );
     }
@@ -108,6 +116,7 @@ public class AwsEc2ServiceImplTests extends OpenSearchTestCase {
         assertThat(credentials.getAWSSecretKey(), is("aws_secret"));
         assertSettingDeprecationsAndWarnings(
             new String[] {},
+            assertedWarnings,
             "Setting [discovery.ec2.secret_key] is set but [discovery.ec2.access_key] is not, which will be unsupported in future"
         );
     }

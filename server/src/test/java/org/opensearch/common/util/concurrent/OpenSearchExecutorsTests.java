@@ -37,7 +37,9 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.test.OpenSearchTestCase;
 import org.hamcrest.Matcher;
 
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -53,6 +55,10 @@ import static org.hamcrest.Matchers.lessThan;
  * Tests for OpenSearchExecutors and its components like OpenSearchAbortPolicy.
  */
 public class OpenSearchExecutorsTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private final ThreadContext threadContext = new ThreadContext(Settings.EMPTY);
 
@@ -467,7 +473,7 @@ public class OpenSearchExecutorsTests extends OpenSearchTestCase {
             processors,
             available
         );
-        assertSettingDeprecationsAndWarnings(deprecatedSettings, expectedWarning);
+        assertSettingDeprecationsAndWarnings(deprecatedSettings, assertedWarnings, expectedWarning);
     }
 
 }

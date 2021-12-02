@@ -61,6 +61,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
@@ -78,6 +79,10 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.startsWith;
 
 public class EvilLoggerTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     public void setUp() throws Exception {
@@ -209,7 +214,7 @@ public class EvilLoggerTests extends OpenSearchTestCase {
         final int iterations = randomIntBetween(0, 128);
         for (int i = 0; i < iterations; i++) {
             setting.get(settings);
-            assertSettingDeprecationsAndWarnings(new Setting<?>[]{setting});
+            assertSettingDeprecationsAndWarnings(new Setting<?>[]{setting}, assertedWarnings);
         }
 
         final String deprecationPath =

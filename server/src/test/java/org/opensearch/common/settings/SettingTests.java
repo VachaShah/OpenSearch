@@ -51,6 +51,7 @@ import org.opensearch.test.junit.annotations.TestLogging;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
 public class SettingTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testGet() {
         Setting<Boolean> booleanSetting = Setting.boolSetting("foo.bar", false, Property.Dynamic, Property.NodeScope);
@@ -710,7 +715,7 @@ public class SettingTests extends OpenSearchTestCase {
             .build();
         deprecatedListSetting.get(settings);
         nonDeprecatedListSetting.get(settings);
-        assertSettingDeprecationsAndWarnings(new Setting[] { deprecatedListSetting });
+        assertSettingDeprecationsAndWarnings(new Setting[] { deprecatedListSetting }, assertedWarnings);
     }
 
     public void testListSettings() {

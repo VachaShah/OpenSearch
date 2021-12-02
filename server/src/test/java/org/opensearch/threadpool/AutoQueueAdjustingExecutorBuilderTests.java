@@ -36,7 +36,14 @@ import org.opensearch.common.settings.Settings;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class AutoQueueAdjustingExecutorBuilderTests extends OpenSearchThreadPoolTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testValidatingMinMaxSettings() {
         Settings settings = Settings.builder()
@@ -82,7 +89,7 @@ public class AutoQueueAdjustingExecutorBuilderTests extends OpenSearchThreadPool
             assertEquals(e.getMessage(), "Failed to parse value [100] for setting [thread_pool.test.min_queue_size] must be <= 99");
         }
 
-        assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.test.max_queue_size" });
+        assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.test.max_queue_size" }, assertedWarnings);
     }
 
     public void testSetLowerSettings() {
@@ -95,7 +102,10 @@ public class AutoQueueAdjustingExecutorBuilderTests extends OpenSearchThreadPool
         assertEquals(10, s.maxQueueSize);
         assertEquals(10, s.minQueueSize);
 
-        assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.test.min_queue_size", "thread_pool.test.max_queue_size" });
+        assertSettingDeprecationsAndWarnings(
+            new String[] { "thread_pool.test.min_queue_size", "thread_pool.test.max_queue_size" },
+            assertedWarnings
+        );
     }
 
     public void testSetHigherSettings() {
@@ -108,7 +118,10 @@ public class AutoQueueAdjustingExecutorBuilderTests extends OpenSearchThreadPool
         assertEquals(3000, s.maxQueueSize);
         assertEquals(2000, s.minQueueSize);
 
-        assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.test.min_queue_size", "thread_pool.test.max_queue_size" });
+        assertSettingDeprecationsAndWarnings(
+            new String[] { "thread_pool.test.min_queue_size", "thread_pool.test.max_queue_size" },
+            assertedWarnings
+        );
     }
 
 }

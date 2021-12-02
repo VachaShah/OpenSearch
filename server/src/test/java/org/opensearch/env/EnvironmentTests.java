@@ -40,7 +40,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -56,6 +58,11 @@ import static org.hamcrest.Matchers.hasToString;
  * Simple unit-tests for Environment.java
  */
 public class EnvironmentTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public Environment newEnvironment() {
         return newEnvironment(Settings.EMPTY);
     }
@@ -222,7 +229,7 @@ public class EnvironmentTests extends OpenSearchTestCase {
         assertPath(pidFile, home.resolve("pidfile"));
 
         if (pidFileSetting.isDeprecated()) {
-            assertSettingDeprecationsAndWarnings(new Setting<?>[] { pidFileSetting });
+            assertSettingDeprecationsAndWarnings(new Setting<?>[] { pidFileSetting }, assertedWarnings);
         }
     }
 

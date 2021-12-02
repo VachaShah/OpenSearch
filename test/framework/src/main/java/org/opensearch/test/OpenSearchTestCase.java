@@ -471,13 +471,26 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
      *
      * @param settings the settings that are expected to be deprecated
      * @param warnings other expected general deprecation warnings
+     * @param assertedWarnings the deprecation warnings that are already asserted since we log same deprecation warnings only once to avoid duplication
      */
-    protected final void assertSettingDeprecationsAndWarnings(final Setting<?>[] settings, final String... warnings) {
-        assertSettingDeprecationsAndWarnings(Arrays.stream(settings).map(Setting::getKey).toArray(String[]::new), warnings);
+    protected final void assertSettingDeprecationsAndWarnings(
+        final Setting<?>[] settings,
+        Set<String> assertedWarnings,
+        final String... warnings
+    ) {
+        assertSettingDeprecationsAndWarnings(
+            Arrays.stream(settings).map(Setting::getKey).toArray(String[]::new),
+            assertedWarnings,
+            warnings
+        );
     }
 
-    protected final void assertSettingDeprecationsAndWarnings(final String[] settings, final String... warnings) {
-        assertWarnings(
+    protected final void assertSettingDeprecationsAndWarnings(
+        final String[] settings,
+        Set<String> assertedWarnings,
+        final String... warnings
+    ) {
+        assertWarningsOnce(
             Stream.concat(
                 Arrays.stream(settings)
                     .map(
@@ -487,7 +500,8 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
                             + "See the breaking changes documentation for the next major version."
                     ),
                 Arrays.stream(warnings)
-            ).toArray(String[]::new)
+            ).collect(Collectors.toList()),
+            assertedWarnings
         );
     }
 

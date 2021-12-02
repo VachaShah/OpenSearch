@@ -502,7 +502,7 @@ public class NodeEnvironmentTests extends OpenSearchTestCase {
         env = newNodeEnvironment(Settings.EMPTY);
         assertThat(env.nodeId(), not(equalTo(nodeID)));
         env.close();
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { Node.NODE_LOCAL_STORAGE_SETTING });
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { Node.NODE_LOCAL_STORAGE_SETTING }, assertedWarnings);
     }
 
     public void testExistingTempFiles() throws IOException {
