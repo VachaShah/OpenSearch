@@ -136,6 +136,10 @@ import static org.opensearch.indices.ShardLimitValidatorTests.createTestShardLim
 
 public class MetadataCreateIndexServiceTests extends OpenSearchTestCase {
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     private AliasValidator aliasValidator;
     private CreateIndexClusterStateUpdateRequest request;
     private QueryShardContext queryShardContext;
@@ -705,9 +709,12 @@ public class MetadataCreateIndexServiceTests extends OpenSearchTestCase {
             );
             // Check deprecations
             assertFalse(checkerService.validateDotIndex(".test2", false));
-            assertWarnings(
-                "index name [.test2] starts with a dot '.', in the next major version, index "
-                    + "names starting with a dot are reserved for hidden indices and system indices"
+            assertWarningsOnce(
+                Arrays.asList(
+                    "index name [.test2] starts with a dot '.', in the next major version, index "
+                        + "names starting with a dot are reserved for hidden indices and system indices"
+                ),
+                assertedWarnings
             );
 
             // Check non-system hidden indices don't trigger a warning
@@ -1185,9 +1192,12 @@ public class MetadataCreateIndexServiceTests extends OpenSearchTestCase {
             randomShardLimitService(),
             Collections.emptySet()
         );
-        assertWarnings(
-            "Creating indices with soft-deletes disabled is deprecated and will be removed in future OpenSearch versions. "
-                + "Please do not specify value for setting [index.soft_deletes.enabled] of index [test]."
+        assertWarningsOnce(
+            Arrays.asList(
+                "Creating indices with soft-deletes disabled is deprecated and will be removed in future OpenSearch versions. "
+                    + "Please do not specify value for setting [index.soft_deletes.enabled] of index [test]."
+            ),
+            assertedWarnings
         );
         request = new CreateIndexClusterStateUpdateRequest("create index", "test", "test");
         if (randomBoolean()) {
@@ -1224,9 +1234,12 @@ public class MetadataCreateIndexServiceTests extends OpenSearchTestCase {
             randomShardLimitService(),
             Collections.emptySet()
         );
-        assertWarnings(
-            "Translog retention settings [index.translog.retention.age] "
-                + "and [index.translog.retention.size] are deprecated and effectively ignored. They will be removed in a future version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "Translog retention settings [index.translog.retention.age] "
+                    + "and [index.translog.retention.size] are deprecated and effectively ignored. They will be removed in a future version."
+            ),
+            assertedWarnings
         );
     }
 
@@ -1270,9 +1283,12 @@ public class MetadataCreateIndexServiceTests extends OpenSearchTestCase {
             randomShardLimitService(),
             Collections.emptySet()
         );
-        assertWarnings(
-            "[simplefs] is deprecated and will be removed in 2.0. Use [niofs], which offers equal "
-                + "or better performance, or other file systems instead."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[simplefs] is deprecated and will be removed in 2.0. Use [niofs], which offers equal "
+                    + "or better performance, or other file systems instead."
+            ),
+            assertedWarnings
         );
     }
 

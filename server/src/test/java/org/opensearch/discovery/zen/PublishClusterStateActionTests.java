@@ -99,6 +99,10 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class PublishClusterStateActionTests extends OpenSearchTestCase {
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     private static final ClusterName CLUSTER_NAME = ClusterName.CLUSTER_NAME_SETTING.getDefault(Settings.EMPTY);
 
     protected ThreadPool threadPool;
@@ -446,9 +450,12 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             .build();
         publishStateAndWait(nodeA.action, clusterState, previousClusterState);
 
-        assertWarnings(
-            "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
-                + "See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
+                    + "See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 
@@ -501,9 +508,12 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             assertThat(node.clusterState.nodes().getLocalNode(), equalTo(node.discoveryNode));
         }
 
-        assertWarnings(
-            "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
-                + "See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
+                    + "See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 
@@ -672,11 +682,14 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             assertThat(exception.getMessage(), containsString(timeOutNodes > 0 ? "timed out" : "failed"));
         }
 
-        assertWarnings(
-            "[discovery.zen.publish_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
-                + "See the breaking changes documentation for the next major version.",
-            "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
-                + "See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[discovery.zen.publish_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
+                    + "See the breaking changes documentation for the next major version.",
+                "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
+                    + "See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 
@@ -763,9 +776,12 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             }
         }
 
-        assertWarnings(
-            "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
-                + "See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
+                    + "See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 

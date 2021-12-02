@@ -44,15 +44,22 @@ import org.opensearch.common.xcontent.XContentType;
 import org.opensearch.test.AbstractSerializingTestCase;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
 public class StoredScriptTests extends AbstractSerializingTestCase<StoredScriptSource> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testBasicAddDelete() {
         StoredScriptSource source = new StoredScriptSource("lang", "code", emptyMap());
@@ -127,7 +134,7 @@ public class StoredScriptTests extends AbstractSerializingTestCase<StoredScriptS
 
             assertThat(parsed, equalTo(source));
         }
-        assertWarnings("Deprecated field [code] used, expected [source] instead");
+        assertWarningsOnce(Arrays.asList("Deprecated field [code] used, expected [source] instead"), assertedWarnings);
 
         // complex script with script object and empty options
         try (XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON)) {
@@ -245,7 +252,7 @@ public class StoredScriptTests extends AbstractSerializingTestCase<StoredScriptS
             StoredScriptSource source = new StoredScriptSource(Script.DEFAULT_TEMPLATE_LANG, "", Collections.emptyMap());
 
             assertThat(parsed, equalTo(source));
-            assertWarnings("empty templates should no longer be used");
+            assertWarningsOnce(Arrays.asList("empty templates should no longer be used"), assertedWarnings);
         }
 
         try (XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON)) {
@@ -255,7 +262,7 @@ public class StoredScriptTests extends AbstractSerializingTestCase<StoredScriptS
             StoredScriptSource source = new StoredScriptSource(Script.DEFAULT_TEMPLATE_LANG, "", Collections.emptyMap());
 
             assertThat(parsed, equalTo(source));
-            assertWarnings("empty templates should no longer be used");
+            assertWarningsOnce(Arrays.asList("empty templates should no longer be used"), assertedWarnings);
         }
     }
 

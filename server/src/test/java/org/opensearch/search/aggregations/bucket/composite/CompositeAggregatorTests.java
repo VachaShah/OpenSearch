@@ -122,6 +122,10 @@ import static org.mockito.Mockito.when;
 public class CompositeAggregatorTests extends AggregatorTestCase {
     private static MappedFieldType[] FIELD_TYPES;
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     @Override
     @Before
     public void setUp() throws Exception {
@@ -1462,7 +1466,10 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
             assertEquals(2L, result.getBuckets().get(1).getDocCount());
         });
 
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     public void testThatDateHistogramFailsFormatAfter() throws IOException {
@@ -1502,7 +1509,10 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
             )
         );
         assertThat(exc.getMessage(), containsString("failed to parse date field [1474329600000]"));
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     public void testWithDateHistogramAndKeyword() throws IOException {
@@ -1577,7 +1587,10 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
             }
         );
 
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     public void testWithKeywordAndHistogram() throws IOException {
@@ -1785,7 +1798,10 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
             }
         );
 
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     public void testWithKeywordAndTopHits() throws Exception {

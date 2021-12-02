@@ -35,9 +35,18 @@ package org.opensearch.rest.action.document;
 import org.opensearch.rest.RestRequest.Method;
 import org.opensearch.test.rest.FakeRestRequest;
 import org.opensearch.test.rest.RestActionTestCase;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Before;
 
 public class RestGetActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -52,7 +61,7 @@ public class RestGetActionTests extends RestActionTestCase {
             "/some_index/some_type/some_id"
         );
         dispatchRequest(deprecatedRequest.withMethod(Method.GET).build());
-        assertWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestGetAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
 
         FakeRestRequest.Builder validRequest = new FakeRestRequest.Builder(xContentRegistry()).withPath("/some_index/_doc/some_id");
         dispatchRequest(validRequest.withMethod(Method.GET).build());
@@ -66,7 +75,7 @@ public class RestGetActionTests extends RestActionTestCase {
             "/some_index/some_type/some_id"
         );
         dispatchRequest(deprecatedRequest.withMethod(Method.HEAD).build());
-        assertWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestGetAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
 
         FakeRestRequest.Builder validRequest = new FakeRestRequest.Builder(xContentRegistry()).withPath("/some_index/_doc/some_id");
         dispatchRequest(validRequest.withMethod(Method.HEAD).build());

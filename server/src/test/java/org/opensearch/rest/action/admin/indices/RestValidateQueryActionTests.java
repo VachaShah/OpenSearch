@@ -59,9 +59,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -69,6 +72,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
 public class RestValidateQueryActionTests extends AbstractSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static ThreadPool threadPool = new TestThreadPool(RestValidateQueryActionTests.class.getName());
     private static NodeClient client = new NodeClient(Settings.EMPTY, threadPool);
@@ -181,7 +188,7 @@ public class RestValidateQueryActionTests extends AbstractSearchTestCase {
             .build();
 
         performRequest(request);
-        assertWarnings(RestValidateQueryAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestValidateQueryAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     public void testTypeParameter() {
@@ -193,7 +200,7 @@ public class RestValidateQueryActionTests extends AbstractSearchTestCase {
             .build();
 
         performRequest(request);
-        assertWarnings(RestValidateQueryAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestValidateQueryAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     private void performRequest(RestRequest request) {

@@ -38,10 +38,17 @@ import org.opensearch.common.lucene.search.Queries;
 import org.opensearch.test.AbstractQueryTestCase;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 
 public class TypeQueryBuilderTests extends AbstractQueryTestCase<TypeQueryBuilder> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected TypeQueryBuilder doCreateTestQueryBuilder() {
@@ -73,18 +80,18 @@ public class TypeQueryBuilderTests extends AbstractQueryTestCase<TypeQueryBuilde
     @Override
     public void testToQuery() throws IOException {
         super.testToQuery();
-        assertWarnings(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     @Override
     public void testMustRewrite() throws IOException {
         super.testMustRewrite();
-        assertWarnings(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     @Override
     public void testCacheability() throws IOException {
         super.testCacheability();
-        assertWarnings(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(TypeQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 }

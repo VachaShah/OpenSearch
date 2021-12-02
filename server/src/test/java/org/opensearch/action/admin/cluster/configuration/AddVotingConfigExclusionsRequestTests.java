@@ -45,6 +45,9 @@ import org.opensearch.common.unit.TimeValue;
 import org.opensearch.test.OpenSearchTestCase;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -56,6 +59,10 @@ import static org.hamcrest.Matchers.equalTo;
 public class AddVotingConfigExclusionsRequestTests extends OpenSearchTestCase {
     private static final String NODE_IDENTIFIERS_INCORRECTLY_SET_MSG = "Please set node identifiers correctly. "
         + "One and only one of [node_name], [node_names] and [node_ids] has to be set";
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testSerialization() throws IOException {
         int descriptionCount = between(1, 5);
@@ -77,7 +84,7 @@ public class AddVotingConfigExclusionsRequestTests extends OpenSearchTestCase {
         );
         assertThat(deserialized.getNodeDescriptions(), equalTo(originalRequest.getNodeDescriptions()));
         assertThat(deserialized.getTimeout(), equalTo(originalRequest.getTimeout()));
-        assertWarnings(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     public void testSerializationForNodeIdOrNodeName() throws IOException {
@@ -165,7 +172,7 @@ public class AddVotingConfigExclusionsRequestTests extends OpenSearchTestCase {
             ).getMessage(),
             equalTo("add voting config exclusions request for [not-a-node] matched no master-eligible nodes")
         );
-        assertWarnings(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     public void testResolveAllNodeIdentifiersNullOrEmpty() {
@@ -447,7 +454,7 @@ public class AddVotingConfigExclusionsRequestTests extends OpenSearchTestCase {
                     + "exceed the maximum of [1] set by [setting.name]"
             )
         );
-        assertWarnings(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(AddVotingConfigExclusionsRequest.DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     private static AddVotingConfigExclusionsRequest makeRequestWithNodeDescriptions(String... nodeDescriptions) {

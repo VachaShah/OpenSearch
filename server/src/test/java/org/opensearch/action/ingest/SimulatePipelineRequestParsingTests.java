@@ -48,9 +48,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.opensearch.action.ingest.SimulatePipelineRequest.Fields;
 import static org.opensearch.action.ingest.SimulatePipelineRequest.SIMULATED_PIPELINE_ID;
@@ -69,6 +71,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SimulatePipelineRequestParsingTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private IngestService ingestService;
 
@@ -149,7 +155,10 @@ public class SimulatePipelineRequestParsingTests extends OpenSearchTestCase {
         assertThat(actualRequest.getPipeline().getDescription(), nullValue());
         assertThat(actualRequest.getPipeline().getProcessors().size(), equalTo(1));
         if (useExplicitType) {
-            assertWarnings("[types removal] specifying _type in pipeline simulation requests is deprecated");
+            assertWarningsOnce(
+                Arrays.asList("[types removal] specifying _type in pipeline simulation requests is deprecated"),
+                assertedWarnings
+            );
         }
     }
 
@@ -271,7 +280,10 @@ public class SimulatePipelineRequestParsingTests extends OpenSearchTestCase {
         assertThat(actualRequest.getPipeline().getDescription(), nullValue());
         assertThat(actualRequest.getPipeline().getProcessors().size(), equalTo(numProcessors));
         if (useExplicitType) {
-            assertWarnings("[types removal] specifying _type in pipeline simulation requests is deprecated");
+            assertWarningsOnce(
+                Arrays.asList("[types removal] specifying _type in pipeline simulation requests is deprecated"),
+                assertedWarnings
+            );
         }
     }
 

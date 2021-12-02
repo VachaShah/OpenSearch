@@ -39,7 +39,16 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class ParseFieldTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testParse() {
         String name = "foo_bar";
         ParseField field = new ParseField(name);
@@ -56,7 +65,10 @@ public class ParseFieldTests extends OpenSearchTestCase {
         assertThat(withDeprecations.match("foo bar", LoggingDeprecationHandler.INSTANCE), is(false));
         for (String deprecatedName : deprecated) {
             assertThat(withDeprecations.match(deprecatedName, LoggingDeprecationHandler.INSTANCE), is(true));
-            assertWarnings("Deprecated field [" + deprecatedName + "] used, expected [foo_bar] instead");
+            assertWarningsOnce(
+                Arrays.asList("Deprecated field [" + deprecatedName + "] used, expected [foo_bar] instead"),
+                assertedWarnings
+            );
         }
     }
 
@@ -66,11 +78,11 @@ public class ParseFieldTests extends OpenSearchTestCase {
         ParseField field = new ParseField(name).withDeprecation(deprecated).withAllDeprecated("like");
         assertFalse(field.match("not a field name", LoggingDeprecationHandler.INSTANCE));
         assertTrue(field.match("text", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [text] used, replaced by [like]");
+        assertWarningsOnce(Arrays.asList("Deprecated field [text] used, replaced by [like]"), assertedWarnings);
         assertTrue(field.match("same_as_text", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [same_as_text] used, replaced by [like]");
+        assertWarningsOnce(Arrays.asList("Deprecated field [same_as_text] used, replaced by [like]"), assertedWarnings);
         assertTrue(field.match("like_text", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [like_text] used, replaced by [like]");
+        assertWarningsOnce(Arrays.asList("Deprecated field [like_text] used, replaced by [like]"), assertedWarnings);
     }
 
     public void testDeprecatedWithNoReplacement() {
@@ -79,11 +91,20 @@ public class ParseFieldTests extends OpenSearchTestCase {
         ParseField field = new ParseField(name).withDeprecation(alternatives).withAllDeprecated();
         assertFalse(field.match("not a field name", LoggingDeprecationHandler.INSTANCE));
         assertTrue(field.match("dep", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [dep] used, this field is unused and will be removed entirely");
+        assertWarningsOnce(
+            Arrays.asList("Deprecated field [dep] used, this field is unused and will be removed entirely"),
+            assertedWarnings
+        );
         assertTrue(field.match("old_dep", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [old_dep] used, this field is unused and will be removed entirely");
+        assertWarningsOnce(
+            Arrays.asList("Deprecated field [old_dep] used, this field is unused and will be removed entirely"),
+            assertedWarnings
+        );
         assertTrue(field.match("new_dep", LoggingDeprecationHandler.INSTANCE));
-        assertWarnings("Deprecated field [new_dep] used, this field is unused and will be removed entirely");
+        assertWarningsOnce(
+            Arrays.asList("Deprecated field [new_dep] used, this field is unused and will be removed entirely"),
+            assertedWarnings
+        );
 
     }
 

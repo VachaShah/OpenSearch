@@ -91,6 +91,10 @@ import static org.opensearch.indices.ShardLimitValidatorTests.createTestShardLim
 
 public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestCase {
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testIndexTemplateInvalidNumberOfShards() {
         PutRequest request = new PutRequest("test", "test_shards");
         request.patterns(singletonList("test_shards*"));
@@ -570,10 +574,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         );
         state = metadataIndexTemplateService.addIndexTemplateV2(state, false, "v2-template", v2Template);
 
-        assertWarnings(
-            "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
-                + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
-                + "take precedence during new index creation"
+        assertWarningsOnce(
+            Arrays.asList(
+                "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
+                    + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
+                    + "take precedence during new index creation"
+            ),
+            assertedWarnings
         );
 
         assertNotNull(state.metadata().templatesV2().get("v2-template"));
@@ -673,10 +680,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         req.patterns(Arrays.asList("*", "baz"));
         state = MetadataIndexTemplateService.innerPutTemplate(state, req, IndexTemplateMetadata.builder("v1-template"));
 
-        assertWarnings(
-            "legacy template [v1-template] has index patterns [*, baz] matching patterns from existing "
-                + "composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); this template [v1-template] may "
-                + "be ignored in favor of a composable template at index creation time"
+        assertWarningsOnce(
+            Arrays.asList(
+                "legacy template [v1-template] has index patterns [*, baz] matching patterns from existing "
+                    + "composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); this template [v1-template] may "
+                    + "be ignored in favor of a composable template at index creation time"
+            ),
+            assertedWarnings
         );
 
         assertNotNull(state.metadata().templates().get("v1-template"));
@@ -703,10 +713,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         req.patterns(Arrays.asList("egg*", "baz"));
         MetadataIndexTemplateService.innerPutTemplate(state, req, IndexTemplateMetadata.builder("v1-template"));
 
-        assertWarnings(
-            "legacy template [v1-template] has index patterns [egg*, baz] matching patterns "
-                + "from existing composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]);"
-                + " this template [v1-template] may be ignored in favor of a composable template at index creation time"
+        assertWarningsOnce(
+            Arrays.asList(
+                "legacy template [v1-template] has index patterns [egg*, baz] matching patterns "
+                    + "from existing composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]);"
+                    + " this template [v1-template] may be ignored in favor of a composable template at index creation time"
+            ),
+            assertedWarnings
         );
     }
 
@@ -734,10 +747,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         );
         state = metadataIndexTemplateService.addIndexTemplateV2(state, false, "v2-template", v2Template);
 
-        assertWarnings(
-            "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
-                + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
-                + "take precedence during new index creation"
+        assertWarningsOnce(
+            Arrays.asList(
+                "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
+                    + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
+                    + "take precedence during new index creation"
+            ),
+            assertedWarnings
         );
 
         assertNotNull(state.metadata().templatesV2().get("v2-template"));
@@ -749,10 +765,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         req.patterns(Arrays.asList("fo*", "baz"));
         state = MetadataIndexTemplateService.innerPutTemplate(state, req, IndexTemplateMetadata.builder("v1-template"));
 
-        assertWarnings(
-            "legacy template [v1-template] has index patterns [fo*, baz] matching patterns from existing "
-                + "composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); this template [v1-template] may "
-                + "be ignored in favor of a composable template at index creation time"
+        assertWarningsOnce(
+            Arrays.asList(
+                "legacy template [v1-template] has index patterns [fo*, baz] matching patterns from existing "
+                    + "composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); this template [v1-template] may "
+                    + "be ignored in favor of a composable template at index creation time"
+            ),
+            assertedWarnings
         );
 
         assertNotNull(state.metadata().templates().get("v1-template"));
@@ -782,10 +801,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         );
         state = metadataIndexTemplateService.addIndexTemplateV2(state, false, "v2-template", v2Template);
 
-        assertWarnings(
-            "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
-                + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
-                + "take precedence during new index creation"
+        assertWarningsOnce(
+            Arrays.asList(
+                "index template [v2-template] has index patterns [foo-bar-*, eggplant] matching patterns "
+                    + "from existing older templates [v1-template] with patterns (v1-template => [fo*, baz]); this template [v2-template] will "
+                    + "take precedence during new index creation"
+            ),
+            assertedWarnings
         );
 
         assertNotNull(state.metadata().templatesV2().get("v2-template"));
@@ -798,10 +820,13 @@ public class MetadataIndexTemplateServiceTests extends OpenSearchSingleNodeTestC
         final ClusterState finalState = state;
         MetadataIndexTemplateService.innerPutTemplate(finalState, req, IndexTemplateMetadata.builder("v1-template"));
 
-        assertWarnings(
-            "legacy template [v1-template] has index patterns [egg*, baz] matching patterns "
-                + "from existing composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); "
-                + "this template [v1-template] may be ignored in favor of a composable template at index creation time"
+        assertWarningsOnce(
+            Arrays.asList(
+                "legacy template [v1-template] has index patterns [egg*, baz] matching patterns "
+                    + "from existing composable templates [v2-template] with patterns (v2-template => [foo-bar-*, eggplant]); "
+                    + "this template [v1-template] may be ignored in favor of a composable template at index creation time"
+            ),
+            assertedWarnings
         );
     }
 

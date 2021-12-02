@@ -39,7 +39,10 @@ import org.opensearch.search.sort.SortOrder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Duplicates the tests from {@link CompositeAggregationBuilderTests}, except using the deprecated
@@ -48,6 +51,10 @@ import java.util.List;
  * Can be removed in when the legacy interval options are gone
  */
 public class LegacyIntervalCompositeAggBuilderTests extends BaseAggregationTestCase<CompositeAggregationBuilder> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private DateHistogramValuesSourceBuilder randomDateHistogramSourceBuilder() {
         DateHistogramValuesSourceBuilder histo = new DateHistogramValuesSourceBuilder(randomAlphaOfLengthBetween(5, 10));
@@ -128,42 +135,63 @@ public class LegacyIntervalCompositeAggBuilderTests extends BaseAggregationTestC
     @Override
     public void testFromXContent() throws IOException {
         super.testFromXContent();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testFromXContentMulti() throws IOException {
         super.testFromXContentMulti();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testSerializationMulti() throws IOException {
         super.testSerializationMulti();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testToString() throws IOException {
         super.testToString();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testSerialization() throws IOException {
         super.testSerialization();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testEqualsAndHashcode() throws IOException {
         super.testEqualsAndHashcode();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 
     @Override
     public void testShallowCopy() {
         super.testShallowCopy();
-        assertWarnings("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.");
+        assertWarningsOnce(
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
+            assertedWarnings
+        );
     }
 }

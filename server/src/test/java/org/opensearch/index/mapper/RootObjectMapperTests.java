@@ -45,11 +45,17 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.opensearch.test.VersionUtils.randomVersionBetween;
 import static org.hamcrest.Matchers.containsString;
 
 public class RootObjectMapperTests extends OpenSearchSingleNodeTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testNumericDetection() throws Exception {
         MergeReason reason = randomFrom(MergeReason.MAPPING_UPDATE, MergeReason.INDEX_TEMPLATE);
@@ -327,9 +333,12 @@ public class RootObjectMapperTests extends OpenSearchSingleNodeTestCase {
         MapperService mapperService = createIndex("test").mapperService();
         DocumentMapper mapper = mapperService.merge("type", new CompressedXContent(Strings.toString(mapping)), MergeReason.MAPPING_UPDATE);
         assertThat(mapper.mappingSource().toString(), containsString("\"type\":\"string\""));
-        assertWarnings(
-            "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":"
-                + "\"string\"}}], caused by [No mapper found for type [string]]"
+        assertWarningsOnce(
+            Arrays.asList(
+                "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":"
+                    + "\"string\"}}], caused by [No mapper found for type [string]]"
+            ),
+            assertedWarnings
         );
     }
 
@@ -357,10 +366,13 @@ public class RootObjectMapperTests extends OpenSearchSingleNodeTestCase {
         MapperService mapperService = createIndex("test").mapperService();
         DocumentMapper mapper = mapperService.merge("type", new CompressedXContent(Strings.toString(mapping)), MergeReason.MAPPING_UPDATE);
         assertThat(mapper.mappingSource().toString(), containsString("\"foo\":\"bar\""));
-        assertWarnings(
-            "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{"
-                + "\"foo\":\"bar\",\"type\":\"keyword\"}}], "
-                + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [keyword]]"
+        assertWarningsOnce(
+            Arrays.asList(
+                "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{"
+                    + "\"foo\":\"bar\",\"type\":\"keyword\"}}], "
+                    + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [keyword]]"
+            ),
+            assertedWarnings
         );
     }
 
@@ -388,9 +400,12 @@ public class RootObjectMapperTests extends OpenSearchSingleNodeTestCase {
         MapperService mapperService = createIndex("test").mapperService();
         DocumentMapper mapper = mapperService.merge("type", new CompressedXContent(Strings.toString(mapping)), MergeReason.MAPPING_UPDATE);
         assertThat(mapper.mappingSource().toString(), containsString("\"analyzer\":\"foobar\""));
-        assertWarnings(
-            "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{"
-                + "\"analyzer\":\"foobar\",\"type\":\"text\"}}], caused by [analyzer [foobar] has not been configured in mappings]"
+        assertWarningsOnce(
+            Arrays.asList(
+                "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"string\",\"mapping\":{"
+                    + "\"analyzer\":\"foobar\",\"type\":\"text\"}}], caused by [analyzer [foobar] has not been configured in mappings]"
+            ),
+            assertedWarnings
         );
     }
 
@@ -464,16 +479,22 @@ public class RootObjectMapperTests extends OpenSearchSingleNodeTestCase {
             );
             assertThat(mapper.mappingSource().toString(), containsString("\"foo\":\"bar\""));
             if (useMatchMappingType) {
-                assertWarnings(
-                    "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"*\",\"mapping\":{"
-                        + "\"foo\":\"bar\",\"type\":\"{dynamic_type}\"}}], "
-                        + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [binary]]"
+                assertWarningsOnce(
+                    Arrays.asList(
+                        "dynamic template [my_template] has invalid content [{\"match_mapping_type\":\"*\",\"mapping\":{"
+                            + "\"foo\":\"bar\",\"type\":\"{dynamic_type}\"}}], "
+                            + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [binary]]"
+                    ),
+                    assertedWarnings
                 );
             } else {
-                assertWarnings(
-                    "dynamic template [my_template] has invalid content [{\"match\":\"string_*\",\"mapping\":{"
-                        + "\"foo\":\"bar\",\"type\":\"{dynamic_type}\"}}], "
-                        + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [binary]]"
+                assertWarningsOnce(
+                    Arrays.asList(
+                        "dynamic template [my_template] has invalid content [{\"match\":\"string_*\",\"mapping\":{"
+                            + "\"foo\":\"bar\",\"type\":\"{dynamic_type}\"}}], "
+                            + "caused by [unknown parameter [foo] on mapper [__dynamic__my_template] of type [binary]]"
+                    ),
+                    assertedWarnings
                 );
             }
         }

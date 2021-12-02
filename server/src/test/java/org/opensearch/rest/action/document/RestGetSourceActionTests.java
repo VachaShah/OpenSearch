@@ -50,7 +50,9 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static org.opensearch.index.seqno.SequenceNumbers.UNASSIGNED_SEQ_NO;
@@ -58,6 +60,10 @@ import static org.opensearch.rest.RestStatus.OK;
 import static org.hamcrest.Matchers.equalTo;
 
 public class RestGetSourceActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static RestRequest request = new FakeRestRequest();
     private static FakeRestChannel channel = new FakeRestChannel(request, true, 0);
@@ -89,7 +95,7 @@ public class RestGetSourceActionTests extends RestActionTestCase {
                     .build();
 
                 dispatchRequest(request);
-                assertWarnings(RestGetSourceAction.TYPES_DEPRECATION_MESSAGE);
+                assertWarningsOnce(Arrays.asList(RestGetSourceAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
             }
         }
     }
@@ -110,7 +116,7 @@ public class RestGetSourceActionTests extends RestActionTestCase {
                     .withParams(params)
                     .build();
                 dispatchRequest(request);
-                assertWarnings(RestGetSourceAction.TYPES_DEPRECATION_MESSAGE);
+                assertWarningsOnce(Arrays.asList(RestGetSourceAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
             }
         }
     }

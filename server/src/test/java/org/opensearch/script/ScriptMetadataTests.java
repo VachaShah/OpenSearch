@@ -45,9 +45,16 @@ import org.opensearch.test.AbstractSerializingTestCase;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ScriptMetadataTests extends AbstractSerializingTestCase<ScriptMetadata> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testFromXContentLoading() throws Exception {
         // failure to load to old namespace scripts with the same id but different langs
@@ -207,7 +214,7 @@ public class ScriptMetadataTests extends AbstractSerializingTestCase<ScriptMetad
                 BytesReference.bytes(builder).streamInput()
             );
         ScriptMetadata.fromXContent(parser);
-        assertWarnings("empty templates should no longer be used");
+        assertWarningsOnce(Arrays.asList("empty templates should no longer be used"), assertedWarnings);
 
         builder = XContentFactory.jsonBuilder();
         builder.startObject().field("lang#empty", "").endObject();
@@ -218,7 +225,7 @@ public class ScriptMetadataTests extends AbstractSerializingTestCase<ScriptMetad
                 BytesReference.bytes(builder).streamInput()
             );
         ScriptMetadata.fromXContent(parser);
-        assertWarnings("empty scripts should no longer be used");
+        assertWarningsOnce(Arrays.asList("empty scripts should no longer be used"), assertedWarnings);
 
         builder = XContentFactory.jsonBuilder();
         builder.startObject().startObject("script").field("lang", "lang").field("source", "").endObject().endObject();
@@ -229,7 +236,7 @@ public class ScriptMetadataTests extends AbstractSerializingTestCase<ScriptMetad
                 BytesReference.bytes(builder).streamInput()
             );
         ScriptMetadata.fromXContent(parser);
-        assertWarnings("empty scripts should no longer be used");
+        assertWarningsOnce(Arrays.asList("empty scripts should no longer be used"), assertedWarnings);
 
         builder = XContentFactory.jsonBuilder();
         builder.startObject().startObject("script").field("lang", "mustache").field("source", "").endObject().endObject();
@@ -240,7 +247,7 @@ public class ScriptMetadataTests extends AbstractSerializingTestCase<ScriptMetad
                 BytesReference.bytes(builder).streamInput()
             );
         ScriptMetadata.fromXContent(parser);
-        assertWarnings("empty templates should no longer be used");
+        assertWarningsOnce(Arrays.asList("empty templates should no longer be used"), assertedWarnings);
     }
 
     public void testOldStyleDropped() throws IOException {

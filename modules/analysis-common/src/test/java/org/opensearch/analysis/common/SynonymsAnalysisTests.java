@@ -70,6 +70,10 @@ import static org.hamcrest.Matchers.startsWith;
 public class SynonymsAnalysisTests extends OpenSearchTestCase {
     private IndexAnalyzers indexAnalyzers;
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testSynonymsAnalysis() throws IOException {
         InputStream synonyms = getClass().getResourceAsStream("synonyms.txt");
         InputStream synonymsWordnet = getClass().getResourceAsStream("synonyms_wordnet.txt");
@@ -342,7 +346,7 @@ public class SynonymsAnalysisTests extends OpenSearchTestCase {
                 tf.get(idxSettings2, null, tf.getName(), settings2).getSynonymFilter();
             }
         }
-        assertWarnings(expectedWarnings.toArray(new String[0]));
+        assertWarningsOnce(expectedWarnings, assertedWarnings);
     }
 
     public void testDisallowedTokenFilters() throws IOException {
@@ -408,7 +412,7 @@ public class SynonymsAnalysisTests extends OpenSearchTestCase {
             expectedWarnings.add("Token filter [" + factory + "] will not be usable to parse synonyms after v7.0");
         }
 
-        assertWarnings(expectedWarnings.toArray(new String[0]));
+        assertWarningsOnce(expectedWarnings, assertedWarnings);
 
         settings = Settings.builder()
             .put(

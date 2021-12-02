@@ -491,6 +491,17 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
         );
     }
 
+    protected final void assertWarningsOnce(List<String> expectedWarnings, Set<String> assertedWarnings) {
+        List<String> uniqueExpectedWarnings = expectedWarnings.stream()
+            .filter(expectedWarning -> !assertedWarnings.contains(expectedWarning))
+            .collect(Collectors.toList());
+        assertedWarnings.addAll(uniqueExpectedWarnings);
+        if (uniqueExpectedWarnings.isEmpty()) {
+            return;
+        }
+        assertWarnings(uniqueExpectedWarnings.toArray(new String[0]));
+    }
+
     protected final void assertWarnings(String... expectedWarnings) {
         assertWarnings(true, expectedWarnings);
     }

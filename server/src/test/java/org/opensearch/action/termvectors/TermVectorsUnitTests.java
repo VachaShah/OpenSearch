@@ -73,6 +73,11 @@ import java.util.Set;
 import static org.hamcrest.Matchers.equalTo;
 
 public class TermVectorsUnitTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testStreamResponse() throws Exception {
         TermVectorsResponse outResponse = new TermVectorsResponse("a", "b", "c");
         outResponse.setExists(true);
@@ -281,7 +286,7 @@ public class TermVectorsUnitTests extends OpenSearchTestCase {
         request.add(new TermVectorsRequest(), data);
 
         checkParsedParameters(request);
-        assertWarnings(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     void checkParsedParameters(MultiTermVectorsRequest request) {
@@ -313,7 +318,7 @@ public class TermVectorsUnitTests extends OpenSearchTestCase {
         request.add(new TermVectorsRequest(), data);
 
         checkParsedFilterParameters(request);
-        assertWarnings(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     void checkParsedFilterParameters(MultiTermVectorsRequest multiRequest) {

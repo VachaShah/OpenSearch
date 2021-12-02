@@ -42,7 +42,15 @@ import org.hamcrest.CoreMatchers;
 
 import static org.hamcrest.Matchers.equalTo;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+
 public class BytesProcessorTests extends AbstractStringProcessorTestCase<Long> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private String modifiedInput;
 
@@ -107,8 +115,12 @@ public class BytesProcessorTests extends AbstractStringProcessorTestCase<Long> {
         Processor processor = newProcessor(fieldName, randomBoolean(), fieldName);
         processor.execute(ingestDocument);
         assertThat(ingestDocument.getFieldValue(fieldName, expectedResultType()), equalTo(1126L));
-        assertWarnings(
-            "Fractional bytes values are deprecated. Use non-fractional bytes values instead: [1.1kb] found for setting " + "[Ingest Field]"
+        assertWarningsOnce(
+            Arrays.asList(
+                "Fractional bytes values are deprecated. Use non-fractional bytes values instead: [1.1kb] found for setting "
+                    + "[Ingest Field]"
+            ),
+            assertedWarnings
         );
     }
 }
