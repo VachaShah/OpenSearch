@@ -104,11 +104,6 @@ import static org.junit.Assert.fail;
  *
  */
 public class DoSection implements ExecutableSection {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     public static DoSection parse(XContentParser parser) throws IOException {
         String currentFieldName = null;
         XContentParser.Token token;
@@ -143,10 +138,7 @@ public class DoSection implements ExecutableSection {
             } else if (token == XContentParser.Token.START_ARRAY) {
                 if ("warnings".equals(currentFieldName)) {
                     while ((token = parser.nextToken()) == XContentParser.Token.VALUE_STRING) {
-                        if (!assertedWarnings.contains(parser.text())) {
-                            expectedWarnings.add(parser.text());
-                            assertedWarnings.add(parser.text());
-                        }
+                        expectedWarnings.add(parser.text());
                     }
                     if (token != XContentParser.Token.END_ARRAY) {
                         throw new ParsingException(parser.getTokenLocation(), "[warnings] must be a string array but saw [" + token + "]");
