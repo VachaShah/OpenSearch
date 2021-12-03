@@ -65,9 +65,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.opensearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -79,10 +77,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
 public class CompletionFieldMapperTests extends MapperTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected void writeFieldValue(XContentBuilder builder) throws IOException {
@@ -769,8 +763,7 @@ public class CompletionFieldMapperTests extends MapperTestCase {
             Arrays.asList(
                 "You have defined more than [10] completion contexts in the mapping for index [null]. "
                     + "The maximum allowed number of completion contexts in a mapping will be limited to [10] starting in version [8.0]."
-            ),
-            assertedWarnings
+            )
         );
     }
 

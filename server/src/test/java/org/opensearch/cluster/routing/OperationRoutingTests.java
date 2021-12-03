@@ -67,10 +67,6 @@ import static org.hamcrest.object.HasToString.hasToString;
 
 public class OperationRoutingTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     public void testGenerateShardId() {
         int[][] possibleValues = new int[][] { { 8, 4, 2 }, { 20, 10, 2 }, { 36, 12, 3 }, { 15, 5, 1 } };
         for (int i = 0; i < 10; i++) {
@@ -670,7 +666,7 @@ public class OperationRoutingTests extends OpenSearchTestCase {
                 .build(),
             new ClusterSettings(Settings.EMPTY, ClusterSettings.BUILT_IN_CLUSTER_SETTINGS)
         );
-        assertWarningsOnce(Arrays.asList(IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE));
     }
 
 }

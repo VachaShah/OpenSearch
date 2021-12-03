@@ -122,10 +122,6 @@ import static org.mockito.Mockito.when;
 public class CompositeAggregatorTests extends AggregatorTestCase {
     private static MappedFieldType[] FIELD_TYPES;
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     @Override
     @Before
     public void setUp() throws Exception {
@@ -1467,8 +1463,7 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
         });
 
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -1510,8 +1505,7 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
         );
         assertThat(exc.getMessage(), containsString("failed to parse date field [1474329600000]"));
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -1588,8 +1582,7 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
         );
 
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -1799,8 +1792,7 @@ public class CompositeAggregatorTests extends AggregatorTestCase {
         );
 
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 

@@ -38,18 +38,12 @@ import org.opensearch.test.AbstractQueryTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.opensearch.index.query.FieldMaskingSpanQueryBuilder.SPAN_FIELD_MASKING_FIELD;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class FieldMaskingSpanQueryBuilderTests extends AbstractQueryTestCase<FieldMaskingSpanQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected FieldMaskingSpanQueryBuilder doCreateTestQueryBuilder() {
@@ -123,8 +117,7 @@ public class FieldMaskingSpanQueryBuilderTests extends AbstractQueryTestCase<Fie
         assertWarningsOnce(
             Arrays.asList(
                 "Deprecated field [field_masking_span] used, expected [" + SPAN_FIELD_MASKING_FIELD.getPreferredName() + "] instead"
-            ),
-            assertedWarnings
+            )
         );
     }
 }

@@ -46,16 +46,10 @@ import org.junit.Before;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static java.util.Collections.singletonMap;
 
 public class RestReindexActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private RestReindexAction action;
 
@@ -130,7 +124,7 @@ public class RestReindexActionTests extends RestActionTestCase {
         verifyingClient.setExecuteLocallyVerifier((arg1, arg2) -> null);
 
         dispatchRequest(requestBuilder.build());
-        assertWarningsOnce(Arrays.asList(ReindexRequest.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(ReindexRequest.TYPES_DEPRECATION_MESSAGE));
     }
 
     /**
@@ -154,6 +148,6 @@ public class RestReindexActionTests extends RestActionTestCase {
         verifyingClient.setExecuteLocallyVerifier((arg1, arg2) -> null);
 
         dispatchRequest(requestBuilder.build());
-        assertWarningsOnce(Arrays.asList(ReindexRequest.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(ReindexRequest.TYPES_DEPRECATION_MESSAGE));
     }
 }

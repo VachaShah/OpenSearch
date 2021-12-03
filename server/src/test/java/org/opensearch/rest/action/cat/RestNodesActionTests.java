@@ -49,8 +49,6 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -58,10 +56,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RestNodesActionTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private RestNodesAction action;
 
@@ -92,7 +86,7 @@ public class RestNodesActionTests extends OpenSearchTestCase {
         request.params().put("local", randomFrom("", "true", "false"));
 
         action.doCatRequest(request, client);
-        assertWarningsOnce(Arrays.asList(RestNodesAction.LOCAL_DEPRECATED_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestNodesAction.LOCAL_DEPRECATED_MESSAGE));
 
         terminate(threadPool);
     }

@@ -77,10 +77,6 @@ import static org.hamcrest.Matchers.startsWith;
 @LuceneTestCase.SuppressFileSystems("ExtrasFS") // TODO: fix test to allow extras
 public class NodeEnvironmentTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     private final IndexSettings idxSettings = IndexSettingsModule.newIndexSettings("foo", Settings.EMPTY);
 
     public void testNodeLockSillySettings() {
@@ -103,8 +99,7 @@ public class NodeEnvironmentTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[node.max_local_storage_nodes] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -134,8 +129,7 @@ public class NodeEnvironmentTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[node.max_local_storage_nodes] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -177,8 +171,7 @@ public class NodeEnvironmentTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[node.max_local_storage_nodes] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -502,7 +495,7 @@ public class NodeEnvironmentTests extends OpenSearchTestCase {
         env = newNodeEnvironment(Settings.EMPTY);
         assertThat(env.nodeId(), not(equalTo(nodeID)));
         env.close();
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { Node.NODE_LOCAL_STORAGE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { Node.NODE_LOCAL_STORAGE_SETTING });
     }
 
     public void testExistingTempFiles() throws IOException {

@@ -43,18 +43,12 @@ import org.opensearch.test.AbstractQueryTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 
 public class IdsQueryBuilderTests extends AbstractQueryTestCase<IdsQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected IdsQueryBuilder doCreateTestQueryBuilder() {
@@ -168,7 +162,7 @@ public class IdsQueryBuilderTests extends AbstractQueryTestCase<IdsQueryBuilder>
 
         IdsQueryBuilder idsQuery = (IdsQueryBuilder) query;
         if (idsQuery.types().length > 0) {
-            assertWarningsOnce(Arrays.asList(IdsQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+            assertWarningsOnce(Arrays.asList(IdsQueryBuilder.TYPES_DEPRECATION_MESSAGE));
         }
         return query;
     }

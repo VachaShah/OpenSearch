@@ -39,17 +39,11 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.opensearch.index.reindex.ReindexTestCase.matcher;
 import static org.opensearch.test.hamcrest.OpenSearchAssertions.assertHitCount;
 
 public class ReindexSingleNodeTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<Class<? extends Plugin>> getPlugins() {
@@ -76,6 +70,6 @@ public class ReindexSingleNodeTests extends OpenSearchSingleNodeTestCase {
 
         assertHitCount(client().prepareSearch("dest").setSize(0).get(), subsetSize);
         assertHitCount(client().prepareSearch("dest").setQuery(new RangeQueryBuilder("foo").gte(0).lt(max - subsetSize)).get(), 0);
-        assertWarningsOnce(Arrays.asList(ReindexValidator.SORT_DEPRECATED_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(ReindexValidator.SORT_DEPRECATED_MESSAGE));
     }
 }

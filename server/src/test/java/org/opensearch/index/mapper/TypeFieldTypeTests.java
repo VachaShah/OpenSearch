@@ -39,14 +39,8 @@ import org.opensearch.test.OpenSearchTestCase;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TypeFieldTypeTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testTermsQuery() {
         QueryShardContext context = Mockito.mock(QueryShardContext.class);
@@ -68,10 +62,7 @@ public class TypeFieldTypeTests extends OpenSearchTestCase {
         assertEquals(new MatchAllDocsQuery(), query);
 
         assertWarningsOnce(
-            Arrays.asList(
-                "[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead."
-            ),
-            assertedWarnings
+            Arrays.asList("[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead.")
         );
     }
 }

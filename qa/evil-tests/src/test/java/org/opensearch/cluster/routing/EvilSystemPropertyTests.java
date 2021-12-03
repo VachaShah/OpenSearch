@@ -44,10 +44,6 @@ import java.util.Set;
 
 public class EvilSystemPropertyTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     @SuppressForbidden(reason = "manipulates system properties for testing")
     public void testDisableSearchAllocationAwareness() {
         Settings indexSettings = Settings.builder()
@@ -55,7 +51,7 @@ public class EvilSystemPropertyTests extends OpenSearchTestCase {
             .build();
         OperationRouting routing = new OperationRouting(indexSettings,
             new ClusterSettings(Settings.EMPTY, ClusterSettings.BUILT_IN_CLUSTER_SETTINGS));
-        assertWarningsOnce(Arrays.asList(OperationRouting.IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(OperationRouting.IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE));
         assertThat(routing.getAwarenessAttributes().size(), equalTo(1));
         assertThat(routing.getAwarenessAttributes().get(0), equalTo("test"));
         System.setProperty("opensearch.search.ignore_awareness_attributes", "true");

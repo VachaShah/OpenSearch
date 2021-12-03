@@ -43,17 +43,11 @@ import org.opensearch.test.OpenSearchTestCase;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 
 public class TransportGetAliasesActionTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private final SystemIndices EMPTY_SYSTEM_INDICES = new SystemIndices(Collections.emptyMap());
 
@@ -135,8 +129,7 @@ public class TransportGetAliasesActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.b], but in a future major version, direct access to system "
                     + "indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -164,8 +157,7 @@ public class TransportGetAliasesActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.b], but in a future major version, direct access to system "
                     + "indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -192,8 +184,7 @@ public class TransportGetAliasesActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.b], but in a future major version, direct access to system "
                     + "indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -269,8 +260,7 @@ public class TransportGetAliasesActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses aliases with names reserved for system indices: [.y], but in a future major version, direct"
                     + "access to system indices and their aliases will not be allowed"
-            ),
-            assertedWarnings
+            )
         );
     }
 

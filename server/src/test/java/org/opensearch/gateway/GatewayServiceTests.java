@@ -59,7 +59,6 @@ import org.hamcrest.Matchers;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.opensearch.gateway.GatewayService.STATE_NOT_RECOVERED_BLOCK;
 import static org.opensearch.test.NodeRoles.masterNode;
@@ -67,10 +66,6 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.hasItem;
 
 public class GatewayServiceTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private GatewayService createService(final Settings.Builder settings) {
         final ClusterService clusterService = new ClusterService(
@@ -118,16 +113,16 @@ public class GatewayServiceTests extends OpenSearchTestCase {
         GatewayService service = createService(Settings.builder());
 
         service = createService(Settings.builder().put("gateway.expected_nodes", 1));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.EXPECTED_NODES_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.EXPECTED_NODES_SETTING });
 
         service = createService(Settings.builder().put("gateway.expected_master_nodes", 1));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.EXPECTED_MASTER_NODES_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.EXPECTED_MASTER_NODES_SETTING });
 
         service = createService(Settings.builder().put("gateway.recover_after_nodes", 1));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.RECOVER_AFTER_NODES_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.RECOVER_AFTER_NODES_SETTING });
 
         service = createService(Settings.builder().put("gateway.recover_after_master_nodes", 1));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.RECOVER_AFTER_MASTER_NODES_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { GatewayService.RECOVER_AFTER_MASTER_NODES_SETTING });
     }
 
     public void testRecoverStateUpdateTask() throws Exception {

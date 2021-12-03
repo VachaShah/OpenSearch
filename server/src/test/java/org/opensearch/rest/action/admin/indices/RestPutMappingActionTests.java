@@ -43,17 +43,11 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.rest.BaseRestHandler.INCLUDE_TYPE_NAME_PARAMETER;
 
 public class RestPutMappingActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -69,7 +63,7 @@ public class RestPutMappingActionTests extends RestActionTestCase {
             .build();
 
         dispatchRequest(deprecatedRequest);
-        assertWarningsOnce(Arrays.asList(RestPutMappingAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestPutMappingAction.TYPES_DEPRECATION_MESSAGE));
 
         RestRequest validRequest = new FakeRestRequest.Builder(xContentRegistry()).withMethod(RestRequest.Method.PUT)
             .withPath("/some_index/_mapping")

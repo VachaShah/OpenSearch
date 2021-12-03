@@ -39,7 +39,6 @@ import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.transport.TransportService;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,10 +47,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SettingsBasedSeedHostsProviderTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private class AssertingHostsResolver implements HostsResolver {
         private final Set<String> expectedHosts;
@@ -111,8 +106,7 @@ public class SettingsBasedSeedHostsProviderTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.ping.unicast.hosts] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

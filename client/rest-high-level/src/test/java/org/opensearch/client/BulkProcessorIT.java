@@ -84,10 +84,6 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
 public class BulkProcessorIT extends OpenSearchRestHighLevelClientTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     private static BulkProcessor.Builder initBulkProcessorBuilder(BulkProcessor.Listener listener) {
         return BulkProcessor.builder(
             (request, bulkListener) -> highLevelClient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
@@ -513,7 +509,7 @@ public class BulkProcessorIT extends OpenSearchRestHighLevelClientTestCase {
 
                 if (localType != null) {
                     // If the payload contains types, parsing it into a bulk request results in a warning.
-                    assertWarningsOnce(Arrays.asList(RestBulkAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+                    assertWarningsOnce(Arrays.asList(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
                 }
             }
             multiGetRequest.add(localIndex, Integer.toString(i));

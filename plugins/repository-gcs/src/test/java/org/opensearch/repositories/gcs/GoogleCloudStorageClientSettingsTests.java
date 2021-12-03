@@ -49,11 +49,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.repositories.gcs.GoogleCloudStorageClientSettings.APPLICATION_NAME_SETTING;
 import static org.opensearch.repositories.gcs.GoogleCloudStorageClientSettings.CONNECT_TIMEOUT_SETTING;
@@ -65,10 +63,6 @@ import static org.opensearch.repositories.gcs.GoogleCloudStorageClientSettings.g
 import static org.opensearch.repositories.gcs.GoogleCloudStorageClientSettings.loadCredential;
 
 public class GoogleCloudStorageClientSettingsTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testLoadWithEmptySettings() {
         final Map<String, GoogleCloudStorageClientSettings> clientsSettings = GoogleCloudStorageClientSettings.load(Settings.EMPTY);
@@ -101,7 +95,7 @@ public class GoogleCloudStorageClientSettingsTests extends OpenSearchTestCase {
         }
 
         if (deprecationWarnings.isEmpty() == false) {
-            assertSettingDeprecationsAndWarnings(deprecationWarnings.toArray(new Setting<?>[0]), assertedWarnings);
+            assertSettingDeprecationsAndWarnings(deprecationWarnings.toArray(new Setting<?>[0]));
         }
     }
 

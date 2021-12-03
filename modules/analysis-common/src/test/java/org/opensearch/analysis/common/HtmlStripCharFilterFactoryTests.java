@@ -46,15 +46,9 @@ import org.opensearch.test.VersionUtils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class HtmlStripCharFilterFactoryTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     /**
      * Check that the deprecated name "htmlStrip" issues a deprecation warning for indices created since 6.3.0
@@ -77,8 +71,7 @@ public class HtmlStripCharFilterFactoryTests extends OpenSearchTestCase {
                 Arrays.asList(
                     "The [htmpStrip] char filter name is deprecated and will be removed in a future version. "
                         + "Please change the filter name to [html_strip] instead."
-                ),
-                assertedWarnings
+                )
             );
         }
     }

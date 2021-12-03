@@ -62,8 +62,6 @@ import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -78,10 +76,6 @@ import static org.hamcrest.Matchers.notNullValue;
 
 @SuppressForbidden(reason = "test requires to set a System property to allow insecure settings when running in IDE")
 public class RepositoryCredentialsTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     static {
         AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
@@ -145,8 +139,7 @@ public class RepositoryCredentialsTests extends OpenSearchSingleNodeTestCase {
                     + " the opensearch keystore for secure settings.",
                 "[access_key] setting was deprecated in OpenSearch and will be removed in a future release!"
                     + " See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -234,8 +227,7 @@ public class RepositoryCredentialsTests extends OpenSearchSingleNodeTestCase {
                         + " the opensearch keystore for secure settings.",
                     "[access_key] setting was deprecated in OpenSearch and will be removed in a future release!"
                         + " See the breaking changes documentation for the next major version."
-                ),
-                assertedWarnings
+                )
             );
         }
     }
@@ -279,8 +271,7 @@ public class RepositoryCredentialsTests extends OpenSearchSingleNodeTestCase {
             Arrays.asList(
                 "Using s3 access/secret key from repository settings. Instead store these in named clients and"
                     + " the opensearch keystore for secure settings."
-            ),
-            assertedWarnings
+            )
         );
     }
 

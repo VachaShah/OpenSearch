@@ -49,15 +49,9 @@ import org.opensearch.test.VersionUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class CommonAnalysisPluginTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     /**
      * Check that the deprecated name "nGram" issues a deprecation warning for indices created since 6.0.0
@@ -86,8 +80,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
             Arrays.asList(
                 "The [nGram] token filter name is deprecated and will be removed in a future version. "
                     + "Please change the filter name to [ngram] instead."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -142,8 +135,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
             Arrays.asList(
                 "The [edgeNGram] token filter name is deprecated and will be removed in a future version. "
                     + "Please change the filter name to [edge_ngram] instead."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -226,8 +218,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
                 Arrays.asList(
                     "Deprecated analyzer [standard_html_strip] used, "
                         + "replace it with a custom analyzer using [standard] tokenizer and [html_strip] char_filter, plus [lowercase] filter"
-                ),
-                assertedWarnings
+                )
             );
         }
     }
@@ -255,8 +246,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
             Arrays.asList(
                 "The [nGram] token filter name is deprecated and will be removed in a future version. "
                     + "Please change the filter name to [ngram] instead."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -282,8 +272,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
             Arrays.asList(
                 "The [edgeNGram] token filter name is deprecated and will be removed in a future version. "
                     + "Please change the filter name to [edge_ngram] instead."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -351,8 +340,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
                             + "Please change the tokenizer name to ["
                             + replacement
                             + "] instead."
-                    ),
-                    assertedWarnings
+                    )
                 );
             }
         }
@@ -380,8 +368,7 @@ public class CommonAnalysisPluginTests extends OpenSearchTestCase {
                             + "Please change the tokenizer name to ["
                             + replacement
                             + "] instead."
-                    ),
-                    assertedWarnings
+                    )
                 );
             }
         }

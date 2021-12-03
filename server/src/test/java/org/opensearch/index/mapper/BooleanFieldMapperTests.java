@@ -48,14 +48,8 @@ import org.opensearch.index.mapper.ParseContext.Document;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class BooleanFieldMapperTests extends MapperTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected void writeFieldValue(XContentBuilder builder) throws IOException {
@@ -69,7 +63,7 @@ public class BooleanFieldMapperTests extends MapperTestCase {
 
     @Override
     protected void assertParseMaximalWarnings() {
-        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"));
     }
 
     protected void registerParameters(ParameterChecker checker) throws IOException {

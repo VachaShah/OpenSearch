@@ -44,17 +44,11 @@ import org.opensearch.test.OpenSearchTestCase;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FieldNamesFieldTypeTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testTermQuery() {
 
@@ -93,8 +87,7 @@ public class FieldNamesFieldTypeTests extends OpenSearchTestCase {
         Query termQuery = fieldNamesFieldType.termQuery("field_name", queryShardContext);
         assertEquals(new TermQuery(new Term(FieldNamesFieldMapper.CONTENT_TYPE, "field_name")), termQuery);
         assertWarningsOnce(
-            Arrays.asList("terms query on the _field_names field is deprecated and will be removed, use exists query instead"),
-            assertedWarnings
+            Arrays.asList("terms query on the _field_names field is deprecated and will be removed, use exists query instead")
         );
 
         FieldNamesFieldMapper.FieldNamesFieldType unsearchable = new FieldNamesFieldMapper.FieldNamesFieldType(false);

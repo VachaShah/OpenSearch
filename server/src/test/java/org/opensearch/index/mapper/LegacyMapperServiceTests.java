@@ -46,14 +46,8 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class LegacyMapperServiceTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected boolean forbidPrivateIndexSettings() {
@@ -108,7 +102,7 @@ public class LegacyMapperServiceTests extends OpenSearchSingleNodeTestCase {
         }
         final MapperService mapperService = createIndex("test", settings).mapperService();
         mapperService.merge("_default_", new CompressedXContent(mapping), MapperService.MergeReason.MAPPING_UPDATE);
-        assertWarningsOnce(Arrays.asList(MapperService.DEFAULT_MAPPING_ERROR_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(MapperService.DEFAULT_MAPPING_ERROR_MESSAGE));
     }
 
 }

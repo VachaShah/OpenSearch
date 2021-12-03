@@ -44,17 +44,12 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class FieldNamesFieldMapperTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static SortedSet<String> extract(String path) {
         SortedSet<String> set = new TreeSet<>();
@@ -161,7 +156,7 @@ public class FieldNamesFieldMapperTests extends OpenSearchSingleNodeTestCase {
         );
 
         assertFieldNames(set("field"), doc);
-        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE));
     }
 
     public void testDisabled() throws Exception {
@@ -192,7 +187,7 @@ public class FieldNamesFieldMapperTests extends OpenSearchSingleNodeTestCase {
         );
 
         assertNull(doc.rootDoc().get("_field_names"));
-        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE.replace("{}", "test")), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE.replace("{}", "test")));
     }
 
     public void testMergingMappings() throws Exception {
@@ -232,6 +227,6 @@ public class FieldNamesFieldMapperTests extends OpenSearchSingleNodeTestCase {
             MapperService.MergeReason.MAPPING_UPDATE
         );
         assertTrue(mapperEnabled.metadataMapper(FieldNamesFieldMapper.class).fieldType().isEnabled());
-        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE.replace("{}", "test")), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE.replace("{}", "test")));
     }
 }

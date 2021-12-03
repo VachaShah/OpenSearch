@@ -54,7 +54,6 @@ import org.opensearch.test.TestGeoShapeFieldMapperPlugin;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
@@ -68,10 +67,6 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("deprecation")
 public class LegacyGeoShapeFieldMapperTests extends FieldMapperTestCase2<LegacyGeoShapeFieldMapper.Builder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected void writeFieldValue(XContentBuilder builder) throws IOException {
@@ -302,7 +297,7 @@ public class LegacyGeoShapeFieldMapperTests extends FieldMapperTestCase2<LegacyG
         for (int i = 0; i < fieldNames.length; ++i) {
             warnings[i] = "Field parameter [" + fieldNames[i] + "] " + "is deprecated and will be removed in a future version.";
         }
-        assertWarningsOnce(Arrays.asList(warnings), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(warnings));
         ;
     }
 
@@ -640,10 +635,7 @@ public class LegacyGeoShapeFieldMapperTests extends FieldMapperTestCase2<LegacyG
 
     @Override
     protected void assertParseMinimalWarnings() {
-        assertWarningsOnce(
-            Arrays.asList("Field parameter [strategy] is deprecated and will be removed in a future version."),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("Field parameter [strategy] is deprecated and will be removed in a future version."));
     }
 
     @Override
@@ -655,8 +647,7 @@ public class LegacyGeoShapeFieldMapperTests extends FieldMapperTestCase2<LegacyG
                 "Field parameter [tree_levels] is deprecated and will be removed in a future version.",
                 "Field parameter [precision] is deprecated and will be removed in a future version.",
                 "Field parameter [distance_error_pct] is deprecated and will be removed in a future version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

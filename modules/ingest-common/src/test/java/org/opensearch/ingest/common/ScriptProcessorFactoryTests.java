@@ -48,9 +48,7 @@ import org.junit.Before;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -60,10 +58,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ScriptProcessorFactoryTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private ScriptProcessor.Factory factory;
     private static final Map<String, String> ingestScriptParamToType;
@@ -143,7 +137,7 @@ public class ScriptProcessorFactoryTests extends OpenSearchTestCase {
         configMap.put("inline", "code");
 
         factory.create(null, randomAlphaOfLength(10), null, configMap);
-        assertWarningsOnce(Arrays.asList("Deprecated field [inline] used, expected [source] instead"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Deprecated field [inline] used, expected [source] instead"));
     }
 
     public void testFactoryInvalidateWithInvalidCompiledScript() throws Exception {

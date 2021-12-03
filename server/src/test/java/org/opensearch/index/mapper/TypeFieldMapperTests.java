@@ -56,15 +56,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Function;
 
 public class TypeFieldMapperTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<Class<? extends Plugin>> getPlugins() {
@@ -74,10 +68,7 @@ public class TypeFieldMapperTests extends OpenSearchSingleNodeTestCase {
     public void testDocValuesSingleType() throws Exception {
         testDocValues(this::createIndex);
         assertWarningsOnce(
-            Arrays.asList(
-                "[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead."
-            ),
-            assertedWarnings
+            Arrays.asList("[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead.")
         );
     }
 

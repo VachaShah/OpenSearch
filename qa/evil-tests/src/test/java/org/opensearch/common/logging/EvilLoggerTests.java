@@ -80,10 +80,6 @@ import static org.hamcrest.Matchers.startsWith;
 
 public class EvilLoggerTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     @Override
     public void setUp() throws Exception {
         assert "false".equals(System.getProperty("tests.security.manager")) : "-Dtests.security.manager=false has to be set";
@@ -214,7 +210,7 @@ public class EvilLoggerTests extends OpenSearchTestCase {
         final int iterations = randomIntBetween(0, 128);
         for (int i = 0; i < iterations; i++) {
             setting.get(settings);
-            assertSettingDeprecationsAndWarnings(new Setting<?>[]{setting}, assertedWarnings);
+            assertSettingDeprecationsAndWarnings(new Setting<?>[]{setting});
         }
 
         final String deprecationPath =

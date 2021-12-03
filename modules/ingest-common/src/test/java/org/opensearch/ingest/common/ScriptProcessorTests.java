@@ -47,18 +47,12 @@ import org.junit.Before;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.core.Is.is;
 
 public class ScriptProcessorTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private ScriptService scriptService;
     private Script script;
@@ -130,6 +124,6 @@ public class ScriptProcessorTests extends OpenSearchTestCase {
         IngestDocument ingestDocument = RandomDocumentPicks.randomIngestDocument(random(), Collections.emptyMap());
         ScriptProcessor processor = new ScriptProcessor(randomAlphaOfLength(10), null, script, null, scriptService);
         processor.execute(ingestDocument);
-        assertWarningsOnce(Arrays.asList("[types removal] Looking up doc types [_type] in scripts is deprecated."), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("[types removal] Looking up doc types [_type] in scripts is deprecated."));
     }
 }

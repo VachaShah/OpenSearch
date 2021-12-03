@@ -82,10 +82,6 @@ public class PercolateQueryBuilderTests extends AbstractQueryTestCase<PercolateQ
         PercolateQueryBuilder.DOCUMENT_FIELD.getPreferredName(),
         PercolateQueryBuilder.DOCUMENTS_FIELD.getPreferredName() };
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     protected static String queryField = "field";
     protected static String aliasField = "alias";
     private static String docType;
@@ -306,7 +302,7 @@ public class PercolateQueryBuilderTests extends AbstractQueryTestCase<PercolateQ
             "{\"percolate\" : { \"document\": {}, \"document_type\":\"" + docType + "\", \"field\":\"" + queryField + "\"}}"
         );
         queryBuilder.toQuery(queryShardContext);
-        assertWarningsOnce(Arrays.asList(PercolateQueryBuilder.DOCUMENT_TYPE_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(PercolateQueryBuilder.DOCUMENT_TYPE_DEPRECATION_MESSAGE));
     }
 
     public void testFromJsonNoType() throws IOException {
@@ -345,7 +341,7 @@ public class PercolateQueryBuilderTests extends AbstractQueryTestCase<PercolateQ
                 + "\"}}"
         );
         rewriteAndFetch(queryBuilder, queryShardContext).toQuery(queryShardContext);
-        assertWarningsOnce(Arrays.asList(PercolateQueryBuilder.TYPE_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(PercolateQueryBuilder.TYPE_DEPRECATION_MESSAGE));
     }
 
     public void testBothDocumentAndDocumentsSpecified() {

@@ -38,8 +38,6 @@ import static org.hamcrest.Matchers.nullValue;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.opensearch.common.xcontent.json.JsonXContent;
 import org.opensearch.search.aggregations.BasePipelineAggregationTestCase;
@@ -48,10 +46,6 @@ import org.opensearch.search.aggregations.pipeline.BucketHelpers.GapPolicy;
 import org.opensearch.search.aggregations.pipeline.HoltWintersModel.SeasonalityType;
 
 public class MovAvgTests extends BasePipelineAggregationTestCase<MovAvgPipelineAggregationBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected MovAvgPipelineAggregationBuilder createTestAggregatorFactory() {
@@ -122,10 +116,7 @@ public class MovAvgTests extends BasePipelineAggregationTestCase<MovAvgPipelineA
     @Override
     public void testFromXContent() throws IOException {
         super.testFromXContent();
-        assertWarningsOnce(
-            Arrays.asList("The moving_avg aggregation has been deprecated in favor of the moving_fn aggregation."),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("The moving_avg aggregation has been deprecated in favor of the moving_fn aggregation."));
     }
 
     public void testDefaultParsing() throws Exception {
@@ -138,10 +129,7 @@ public class MovAvgTests extends BasePipelineAggregationTestCase<MovAvgPipelineA
             + "    }"
             + "}";
         PipelineAggregationBuilder newAgg = parse(createParser(JsonXContent.jsonXContent, json));
-        assertWarningsOnce(
-            Arrays.asList("The moving_avg aggregation has been deprecated in favor of the moving_fn aggregation."),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("The moving_avg aggregation has been deprecated in favor of the moving_fn aggregation."));
         assertNotSame(newAgg, expected);
         assertEquals(expected, newAgg);
         assertEquals(expected.hashCode(), newAgg.hashCode());

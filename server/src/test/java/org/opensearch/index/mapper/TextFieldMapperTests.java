@@ -86,9 +86,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -97,10 +95,6 @@ import static org.hamcrest.core.Is.is;
 
 public class TextFieldMapperTests extends MapperTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     @Override
     protected void writeFieldValue(XContentBuilder builder) throws IOException {
         builder.value(1234);
@@ -108,7 +102,7 @@ public class TextFieldMapperTests extends MapperTestCase {
 
     @Override
     protected void assertParseMaximalWarnings() {
-        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"));
     }
 
     public final void testExistsQueryIndexDisabled() throws IOException {

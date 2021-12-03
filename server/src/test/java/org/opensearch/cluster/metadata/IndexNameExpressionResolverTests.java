@@ -84,10 +84,6 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class IndexNameExpressionResolverTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     private IndexNameExpressionResolver indexNameExpressionResolver;
     private ThreadContext threadContext;
 
@@ -2210,8 +2206,7 @@ public class IndexNameExpressionResolverTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.ml-meta, .ml-stuff], but in a future major version, "
                     + "direct access to system indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
 
     }
@@ -2227,8 +2222,7 @@ public class IndexNameExpressionResolverTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.ml-meta], but in a future major version, direct access "
                     + "to system indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
 
     }
@@ -2244,8 +2238,7 @@ public class IndexNameExpressionResolverTests extends OpenSearchTestCase {
             Arrays.asList(
                 "this request accesses system indices: [.ml-meta, .ml-stuff], but in a future major version, direct access "
                     + "to system indices will be prevented by default"
-            ),
-            assertedWarnings
+            )
         );
 
     }

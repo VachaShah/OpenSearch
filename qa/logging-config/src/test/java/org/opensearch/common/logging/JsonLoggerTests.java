@@ -74,10 +74,6 @@ import static org.hamcrest.Matchers.not;
  */
 public class JsonLoggerTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
     @BeforeClass
@@ -129,7 +125,7 @@ public class JsonLoggerTests extends OpenSearchTestCase {
                 );
             }
 
-            assertWarningsOnce(Arrays.asList("deprecated message1"), assertedWarnings);
+            assertWarningsOnce(Arrays.asList("deprecated message1"));
         });
     }
 

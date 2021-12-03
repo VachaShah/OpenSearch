@@ -49,10 +49,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,10 +67,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ConditionalProcessorTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final String scriptName = "conditionalScript";
 
@@ -217,7 +211,7 @@ public class ConditionalProcessorTests extends OpenSearchTestCase {
 
         IngestDocument ingestDocument = RandomDocumentPicks.randomIngestDocument(random(), Collections.emptyMap());
         processor.execute(ingestDocument, (result, e) -> {});
-        assertWarningsOnce(Arrays.asList("[types removal] Looking up doc types [_type] in scripts is deprecated."), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("[types removal] Looking up doc types [_type] in scripts is deprecated."));
     }
 
     public void testPrecompiledError() {

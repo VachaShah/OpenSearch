@@ -40,18 +40,12 @@ import org.opensearch.plugins.Plugin;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class ExternalFieldMapperTests extends MapperServiceTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<? extends Plugin> getPlugins() {
@@ -136,8 +130,7 @@ public class ExternalFieldMapperTests extends MapperServiceTestCase {
                     + "no longer be supported in 8.0. To resolve the issue, all instances of [fields] that occur within a [fields] block "
                     + "should be removed from the mappings, either by flattening the chained [fields] blocks into a single level, or "
                     + "switching to [copy_to] if appropriate."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -191,8 +184,7 @@ public class ExternalFieldMapperTests extends MapperServiceTestCase {
                     + "no longer be supported in 8.0. To resolve the issue, all instances of [fields] that occur within a [fields] block "
                     + "should be removed from the mappings, either by flattening the chained [fields] blocks into a single level, or "
                     + "switching to [copy_to] if appropriate."
-            ),
-            assertedWarnings
+            )
         );
     }
 }

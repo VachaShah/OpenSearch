@@ -43,16 +43,10 @@ import static org.opensearch.cluster.coordination.NoMasterBlockService.LEGACY_NO
 import static org.opensearch.common.settings.ClusterSettings.BUILT_IN_CLUSTER_SETTINGS;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.sameInstance;
 
 public class NoMasterBlockServiceTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private NoMasterBlockService noMasterBlockService;
     private ClusterSettings clusterSettings;
@@ -67,8 +61,7 @@ public class NoMasterBlockServiceTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.no_master_block] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

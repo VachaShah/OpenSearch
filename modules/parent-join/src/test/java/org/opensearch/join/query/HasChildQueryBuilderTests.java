@@ -76,9 +76,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.opensearch.join.query.JoinQueryBuilders.hasChildQuery;
@@ -90,10 +88,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HasChildQueryBuilderTests extends AbstractQueryTestCase<HasChildQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final String TYPE = "_doc";
     private static final String PARENT_DOC = "parent";
@@ -187,7 +181,7 @@ public class HasChildQueryBuilderTests extends AbstractQueryTestCase<HasChildQue
         QueryBuilder query = new MatchAllQueryBuilder();
         HasChildQueryBuilder foo = hasChildQuery("foo", query, ScoreMode.None);
         foo.minMaxChildren(0, 1);
-        assertWarningsOnce(Arrays.asList(HasChildQueryBuilder.MIN_CHILDREN_0_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(HasChildQueryBuilder.MIN_CHILDREN_0_DEPRECATION_MESSAGE));
     }
 
     @Override

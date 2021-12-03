@@ -60,10 +60,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.containsString;
@@ -71,9 +69,6 @@ import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class TermsQueryBuilderTests extends AbstractQueryTestCase<TermsQueryBuilder> {
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
     private List<Object> randomTerms;
     private String termsPath;
     private boolean maybeIncludeType = true;
@@ -360,7 +355,7 @@ public class TermsQueryBuilderTests extends AbstractQueryTestCase<TermsQueryBuil
     public void testTypeField() throws IOException {
         TermsQueryBuilder builder = QueryBuilders.termsQuery("_type", "value1", "value2");
         builder.doToQuery(createShardContext());
-        assertWarningsOnce(Arrays.asList(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE));
     }
 
     public void testRewriteIndexQueryToMatchNone() throws IOException {
@@ -386,10 +381,7 @@ public class TermsQueryBuilderTests extends AbstractQueryTestCase<TermsQueryBuil
 
             TermsQueryBuilder termsQuery = (TermsQueryBuilder) query;
             if (termsQuery.isTypeless() == false) {
-                assertWarningsOnce(
-                    Arrays.asList("Deprecated field [type] used, this field is unused and will be removed entirely"),
-                    assertedWarnings
-                );
+                assertWarningsOnce(Arrays.asList("Deprecated field [type] used, this field is unused and will be removed entirely"));
             }
             return query;
         } finally {

@@ -52,7 +52,6 @@ import org.junit.Before;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -70,10 +69,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
 public class ScriptServiceTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private ScriptEngine scriptEngine;
     private Map<String, ScriptEngine> engines;
@@ -279,8 +274,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         scriptService.compile(script, context);
         assertEquals(1L, scriptService.stats().getCompilations());
         assertSettingDeprecationsAndWarnings(
-            new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING },
-            assertedWarnings
+            new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }
         );
     }
 
@@ -304,8 +298,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         assertEquals(1L, scriptService.stats().getCacheEvictions());
         assertEquals(1L, scriptService.cacheStats().getGeneralStats().getCacheEvictions());
         assertSettingDeprecationsAndWarnings(
-            new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING },
-            assertedWarnings
+            new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }
         );
     }
 
@@ -506,7 +499,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
                 .put(ScriptService.SCRIPT_MAX_COMPILATIONS_RATE_SETTING.getConcreteSettingForNamespace("score").getKey(), "50/5m")
                 .build()
         );
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testFallbackContextSettings() {
@@ -530,10 +523,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
 
         assertEquals(cacheExpireFooParsed, ScriptService.SCRIPT_CACHE_EXPIRE_SETTING.getConcreteSettingForNamespace("foo").get(s));
         assertEquals(cacheExpireBackupParsed, ScriptService.SCRIPT_CACHE_EXPIRE_SETTING.getConcreteSettingForNamespace("bar").get(s));
-        assertSettingDeprecationsAndWarnings(
-            new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_CACHE_EXPIRE_SETTING },
-            assertedWarnings
-        );
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_CACHE_SIZE_SETTING, SCRIPT_GENERAL_CACHE_EXPIRE_SETTING });
     }
 
     public void testUseContextSettingValue() {
@@ -553,7 +543,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         );
 
         assertEquals("parameter must contain a positive integer and a timevalue, i.e. 10/1m, but was [use-context]", illegal.getMessage());
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testCacheHolderGeneralConstructor() throws IOException {
@@ -565,7 +555,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         assertNotNull(holder.general);
         assertNull(holder.contextCache);
         assertEquals(holder.general.rate, new ScriptCache.CompilationRate(compilationRate));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testCacheHolderContextConstructor() throws IOException {
@@ -613,7 +603,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
                 .put(SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING.getKey(), ScriptService.USE_CONTEXT_RATE_KEY)
                 .build()
         );
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testDisableCompilationRateSetting() throws IOException {
@@ -645,7 +635,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         );
 
         buildScriptService(Settings.builder().put("script.disable_max_compilations_rate", true).build());
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testCacheHolderChangeSettings() throws IOException {
@@ -716,7 +706,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         scriptService.setCacheHolder(Settings.builder().put(SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING.getKey(), bRate).build());
         assertEquals(holder, scriptService.cacheHolder.get());
 
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     public void testFallbackToContextDefaults() throws IOException {
@@ -760,7 +750,7 @@ public class ScriptServiceTests extends OpenSearchTestCase {
         assertEquals(ingest.cacheSizeDefault, holder.contextCache.get(name).get().cacheSize);
         assertEquals(ingest.cacheExpireDefault, holder.contextCache.get(name).get().cacheExpire);
 
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { SCRIPT_GENERAL_MAX_COMPILATIONS_RATE_SETTING });
     }
 
     private void assertCompileRejected(String lang, String script, ScriptType scriptType, ScriptContext scriptContext) {

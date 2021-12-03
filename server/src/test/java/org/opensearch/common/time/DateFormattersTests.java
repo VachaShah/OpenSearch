@@ -44,9 +44,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -57,10 +55,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
 public class DateFormattersTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testWeekBasedDates() {
         assumeFalse(
@@ -431,8 +425,7 @@ public class DateFormattersTests extends OpenSearchTestCase {
         assertWarningsOnce(
             Arrays.asList(
                 "Format name \"week_year\" is deprecated and will be removed in a future version. " + "Use \"weekyear\" format instead"
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -523,8 +516,7 @@ public class DateFormattersTests extends OpenSearchTestCase {
                         + "Use snake case name "
                         + snakeCaseName
                         + " instead."
-                ),
-                assertedWarnings
+                )
             );
 
             dateFormatter = DateFormatter.forPattern(snakeCaseName);
@@ -545,8 +537,7 @@ public class DateFormattersTests extends OpenSearchTestCase {
                             + "Use snake case name "
                             + snakeCaseName
                             + " instead."
-                    ),
-                    assertedWarnings
+                    )
                 );
 
                 dateFormatter = Joda.forPattern(snakeCaseName);

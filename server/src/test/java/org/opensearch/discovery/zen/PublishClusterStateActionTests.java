@@ -99,10 +99,6 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class PublishClusterStateActionTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     private static final ClusterName CLUSTER_NAME = ClusterName.CLUSTER_NAME_SETTING.getDefault(Settings.EMPTY);
 
     protected ThreadPool threadPool;
@@ -454,8 +450,7 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -512,8 +507,7 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.publish_diff.enable] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -688,8 +682,7 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
                     + "See the breaking changes documentation for the next major version.",
                 "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -780,8 +773,7 @@ public class PublishClusterStateActionTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.commit_timeout] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

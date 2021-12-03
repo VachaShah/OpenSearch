@@ -37,17 +37,11 @@ import org.opensearch.common.util.concurrent.OpenSearchExecutors;
 import org.opensearch.common.util.concurrent.OpenSearchRejectedExecutionException;
 import org.opensearch.threadpool.ThreadPool.Names;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class FixedThreadPoolTests extends OpenSearchThreadPoolTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testRejectedExecutionCounter() throws InterruptedException {
         final String threadPoolName = randomThreadPool(ThreadPool.ThreadPoolType.FIXED);
@@ -109,10 +103,7 @@ public class FixedThreadPoolTests extends OpenSearchThreadPoolTestCase {
         }
 
         if (Names.LISTENER.equals(threadPoolName)) {
-            assertSettingDeprecationsAndWarnings(
-                new String[] { "thread_pool.listener.queue_size", "thread_pool.listener.size" },
-                assertedWarnings
-            );
+            assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.listener.queue_size", "thread_pool.listener.size" });
         }
     }
 

@@ -41,10 +41,8 @@ import org.opensearch.test.AbstractQueryTestCase;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.index.query.QueryBuilders.commonTermsQuery;
 import static org.opensearch.test.StreamsUtils.copyToStringFromClasspath;
@@ -53,10 +51,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.nullValue;
 
 public class CommonTermsQueryBuilderTests extends AbstractQueryTestCase<CommonTermsQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected CommonTermsQueryBuilder doCreateTestQueryBuilder() {
@@ -268,8 +262,7 @@ public class CommonTermsQueryBuilderTests extends AbstractQueryTestCase<CommonTe
         assertWarningsOnce(
             Arrays.asList(
                 "Deprecated field [common] used, replaced by [" + CommonTermsQueryBuilder.COMMON_TERMS_QUERY_DEPRECATION_MSG + "]"
-            ),
-            assertedWarnings
+            )
         );
     }
 }

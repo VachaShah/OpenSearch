@@ -63,10 +63,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
@@ -98,10 +96,6 @@ public class AnalysisRegistryTests extends OpenSearchTestCase {
             emptyMap()
         );
     }
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     /**
      * Creates a reverse filter available for use in testNameClashNormalizer test
@@ -454,7 +448,7 @@ public class AnalysisRegistryTests extends OpenSearchTestCase {
         new AnalysisModule(TestEnvironment.newEnvironment(settings), singletonList(plugin)).getAnalysisRegistry().build(idxSettings);
 
         // We should only get a warning from the token filter that is referenced in settings
-        assertWarningsOnce(Arrays.asList("Using deprecated token filter [deprecated]"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Using deprecated token filter [deprecated]"));
 
         indexSettings = Settings.builder()
             .put(IndexMetadata.SETTING_VERSION_CREATED, VersionUtils.getPreviousVersion())
@@ -472,7 +466,7 @@ public class AnalysisRegistryTests extends OpenSearchTestCase {
 
         // We should only get a warning from the normalizer, because we're on a version where 'deprecated'
         // works fine
-        assertWarningsOnce(Arrays.asList("Using deprecated token filter [deprecated_normalizer]"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Using deprecated token filter [deprecated_normalizer]"));
 
         indexSettings = Settings.builder()
             .put(IndexMetadata.SETTING_VERSION_CREATED, Version.CURRENT)

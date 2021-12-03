@@ -45,16 +45,10 @@ import org.opensearch.script.Script;
 import org.opensearch.test.OpenSearchTestCase;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.mockito.Mockito;
 
 public class ScoreFunctionBuilderTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testIllegalArguments() {
         expectThrows(IllegalArgumentException.class, () -> new RandomScoreFunctionBuilder().seed(null));
@@ -90,9 +84,6 @@ public class ScoreFunctionBuilderTests extends OpenSearchTestCase {
         Mockito.when(mapperService.fieldType(Mockito.anyString())).thenReturn(ft);
         Mockito.when(context.getMapperService()).thenReturn(mapperService);
         builder.toFunction(context);
-        assertWarningsOnce(
-            Arrays.asList("OpenSearch requires that a [field] parameter is provided when a [seed] is set"),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("OpenSearch requires that a [field] parameter is provided when a [seed] is set"));
     }
 }

@@ -59,10 +59,6 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class FullClusterRestartSettingsUpgradeIT extends AbstractFullClusterRestartTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     public void testRemoteClusterSettingsUpgraded() throws IOException {
         assumeTrue("skip_unavailable did not exist until 6.1.0", getOldClusterVersion().onOrAfter(LegacyESVersion.V_6_1_0));
         assumeTrue("settings automatically upgraded since 6.5.0", getOldClusterVersion().before(LegacyESVersion.V_6_5_0));
@@ -104,8 +100,7 @@ public class FullClusterRestartSettingsUpgradeIT extends AbstractFullClusterRest
             assertSettingDeprecationsAndWarnings(new Setting<?>[]{
                     SEARCH_REMOTE_CLUSTER_SKIP_UNAVAILABLE.getConcreteSettingForNamespace("foo"),
                     SEARCH_REMOTE_CLUSTERS_SEEDS.getConcreteSettingForNamespace("foo"),
-                    SEARCH_REMOTE_CLUSTERS_PROXY.getConcreteSettingForNamespace("foo")},
-                    assertedWarnings);
+                    SEARCH_REMOTE_CLUSTERS_PROXY.getConcreteSettingForNamespace("foo")});
         } else {
             final Request getSettingsRequest = new Request("GET", "/_cluster/settings");
             final Response getSettingsResponse = client().performRequest(getSettingsRequest);

@@ -120,10 +120,6 @@ import static org.mockito.Mockito.when;
 
 public class ZenDiscoveryUnitTests extends OpenSearchTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     public void testShouldIgnoreNewClusterState() {
         ClusterName clusterName = new ClusterName("abc");
 
@@ -306,8 +302,7 @@ public class ZenDiscoveryUnitTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.minimum_master_nodes] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -366,8 +361,7 @@ public class ZenDiscoveryUnitTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.minimum_master_nodes] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

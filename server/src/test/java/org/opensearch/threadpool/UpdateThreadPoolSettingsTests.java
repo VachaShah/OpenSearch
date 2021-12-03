@@ -39,7 +39,6 @@ import org.opensearch.common.util.concurrent.OpenSearchThreadPoolExecutor;
 import org.opensearch.threadpool.ThreadPool.Names;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -52,10 +51,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
 public class UpdateThreadPoolSettingsTests extends OpenSearchThreadPoolTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testCorrectThreadPoolTypePermittedInSettings() throws InterruptedException {
         String threadPoolName = randomThreadPoolName();
@@ -144,7 +139,7 @@ public class UpdateThreadPoolSettingsTests extends OpenSearchThreadPoolTestCase 
         }
 
         if (Names.LISTENER.equals(threadPoolName)) {
-            assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.listener.size" }, assertedWarnings);
+            assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.listener.size" });
         }
     }
 
@@ -202,7 +197,7 @@ public class UpdateThreadPoolSettingsTests extends OpenSearchThreadPoolTestCase 
         }
 
         if (Names.LISTENER.equals(threadPoolName)) {
-            assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.listener.queue_size" }, assertedWarnings);
+            assertSettingDeprecationsAndWarnings(new String[] { "thread_pool.listener.queue_size" });
         }
     }
 

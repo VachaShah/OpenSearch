@@ -84,11 +84,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -104,10 +102,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 
 public abstract class BaseXContentTestCase extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     protected abstract XContentType xcontentType();
 
@@ -1189,7 +1183,7 @@ public abstract class BaseXContentTestCase extends OpenSearchTestCase {
             assertEquals(test1, p.namedObject(Object.class, "test1", null));
             assertEquals(test2, p.namedObject(Object.class, "test2", null));
             assertEquals(test2, p.namedObject(Object.class, "deprecated", null));
-            assertWarningsOnce(Arrays.asList("Deprecated field [deprecated] used, expected [test2] instead"), assertedWarnings);
+            assertWarningsOnce(Arrays.asList("Deprecated field [deprecated] used, expected [test2] instead"));
             p.nextToken();
             assertEquals("test", p.namedObject(Object.class, "str", null));
             {

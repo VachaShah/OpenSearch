@@ -71,7 +71,6 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -82,10 +81,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class ZenFaultDetectionTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     protected ThreadPool threadPool;
     private CircuitBreakerService circuitBreakerService;
@@ -278,8 +273,7 @@ public class ZenFaultDetectionTests extends OpenSearchTestCase {
                     + "release! See the breaking changes documentation for the next major version.",
                 "[discovery.zen.fd.ping_interval] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -334,8 +328,7 @@ public class ZenFaultDetectionTests extends OpenSearchTestCase {
                     + "release! See the breaking changes documentation for the next major version.",
                 "[discovery.zen.fd.ping_interval] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -396,8 +389,7 @@ public class ZenFaultDetectionTests extends OpenSearchTestCase {
                     + "release! See the breaking changes documentation for the next major version.",
                 "[discovery.zen.fd.ping_interval] setting was deprecated in OpenSearch and will be removed in a future "
                     + "release! See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

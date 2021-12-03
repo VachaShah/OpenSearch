@@ -63,19 +63,13 @@ import org.opensearch.search.aggregations.support.AggregationInspectionHelper;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 
 public class CumulativeSumAggregatorTests extends AggregatorTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final String HISTO_FIELD = "histo";
     private static final String VALUE_FIELD = "value_field";
@@ -166,8 +160,7 @@ public class CumulativeSumAggregatorTests extends AggregatorTestCase {
             }
         });
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 

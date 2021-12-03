@@ -82,10 +82,6 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class AnnotatedTextFieldMapperTests extends MapperTestCase {
 
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
-
     @Override
     protected Collection<Plugin> getPlugins() {
         return Collections.singletonList(new AnnotatedTextPlugin());
@@ -103,7 +99,7 @@ public class AnnotatedTextFieldMapperTests extends MapperTestCase {
 
     @Override
     protected void assertParseMaximalWarnings() {
-        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"));
     }
 
     @Override
@@ -604,10 +600,7 @@ public class AnnotatedTextFieldMapperTests extends MapperTestCase {
             b.field("type", "annotated_text");
             b.field("index", false);
         }));
-        assertWarningsOnce(
-            Arrays.asList("Parameter [index] has no effect on type [annotated_text] and will be removed in future"),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("Parameter [index] has no effect on type [annotated_text] and will be removed in future"));
     }
 
     public void testAnalyzedFieldPositionIncrementWithoutPositions() {

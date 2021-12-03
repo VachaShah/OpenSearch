@@ -65,10 +65,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonList;
@@ -80,10 +78,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 public class MultiSearchRequestTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final DeprecationLogger deprecationLogger = DeprecationLogger.getLogger(MultiSearchRequestTests.class);
 
@@ -280,8 +274,7 @@ public class MultiSearchRequestTests extends OpenSearchTestCase {
             Arrays.asList(
                 "support for empty first line before any action metadata in msearch API is deprecated and will be removed "
                     + "in the next major version"
-            ),
-            assertedWarnings
+            )
         );
     }
 
@@ -306,8 +299,7 @@ public class MultiSearchRequestTests extends OpenSearchTestCase {
             Arrays.asList(
                 "support for empty first line before any action metadata in msearch API is deprecated and will be removed "
                     + "in the next major version"
-            ),
-            assertedWarnings
+            )
         );
     }
 

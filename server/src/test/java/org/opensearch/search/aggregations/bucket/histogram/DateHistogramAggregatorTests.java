@@ -55,9 +55,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
@@ -68,10 +66,6 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
      * A date that is always "searchable" because it is indexed.
      */
     private static final String SEARCHABLE_DATE = "searchable_date";
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final List<String> DATASET = Arrays.asList(
         "2010-03-12T01:07:45",
@@ -98,8 +92,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -144,8 +137,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -258,8 +250,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             assertFalse(AggregationInspectionHelper.hasValue(histogram));
         }, false);
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -288,8 +279,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -334,8 +324,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
         ;
     }
@@ -389,8 +378,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -447,8 +435,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -554,8 +541,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -682,8 +668,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -777,8 +762,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -958,8 +942,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
             false
         );
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -1192,8 +1175,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
         assertThat(e.getMessage(), equalTo("Cannot use [calendar_interval] with [interval] configuration option."));
 
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 
@@ -1234,8 +1216,7 @@ public class DateHistogramAggregatorTests extends DateHistogramAggregatorTestCas
         );
         assertThat(e.getMessage(), equalTo("Unable to parse interval [foobar]"));
         assertWarningsOnce(
-            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future."),
-            assertedWarnings
+            Arrays.asList("[interval] on [date_histogram] is deprecated, use [fixed_interval] or [calendar_interval] in the future.")
         );
     }
 

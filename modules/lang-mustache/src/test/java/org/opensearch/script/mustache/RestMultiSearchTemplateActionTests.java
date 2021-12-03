@@ -41,14 +41,8 @@ import org.junit.Before;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class RestMultiSearchTemplateActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -67,7 +61,7 @@ public class RestMultiSearchTemplateActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestMultiSearchTemplateAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiSearchTemplateAction.TYPES_DEPRECATION_MESSAGE));
     }
 
     public void testTypeInBody() {
@@ -81,6 +75,6 @@ public class RestMultiSearchTemplateActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestMultiSearchTemplateAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiSearchTemplateAction.TYPES_DEPRECATION_MESSAGE));
     }
 }

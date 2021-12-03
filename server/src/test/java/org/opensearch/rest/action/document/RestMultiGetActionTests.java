@@ -67,7 +67,7 @@ public class RestMultiGetActionTests extends RestActionTestCase {
             .withPath("some_index/some_type/_mget")
             .build();
         dispatchRequest(deprecatedRequest);
-        assertWarningsOnce(Arrays.asList(RestMultiGetAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiGetAction.TYPES_DEPRECATION_MESSAGE));
 
         RestRequest validRequest = new FakeRestRequest.Builder(xContentRegistry()).withMethod(Method.GET)
             .withPath("some_index/_mget")
@@ -98,6 +98,6 @@ public class RestMultiGetActionTests extends RestActionTestCase {
             .withContent(BytesReference.bytes(content), XContentType.JSON)
             .build();
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestMultiGetAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiGetAction.TYPES_DEPRECATION_MESSAGE));
     }
 }

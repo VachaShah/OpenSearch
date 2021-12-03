@@ -47,18 +47,12 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.rest.BaseRestHandler.INCLUDE_TYPE_NAME_PARAMETER;
 import static org.mockito.Mockito.mock;
 
 public class RestGetMappingActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private ThreadPool threadPool;
 
@@ -83,7 +77,7 @@ public class RestGetMappingActionTests extends RestActionTestCase {
         RestGetMappingAction handler = new RestGetMappingAction(threadPool);
         handler.prepareRequest(request, mock(NodeClient.class));
 
-        assertWarningsOnce(Arrays.asList("Type exists requests are deprecated, as types have been deprecated."), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Type exists requests are deprecated, as types have been deprecated."));
     }
 
     public void testTypeInPath() {
@@ -125,7 +119,7 @@ public class RestGetMappingActionTests extends RestActionTestCase {
         ThreadContext threadContext = new ThreadContext(Settings.EMPTY);
         controller().dispatchRequest(request, channel, threadContext);
 
-        assertWarningsOnce(Arrays.asList(RestGetMappingAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestGetMappingAction.TYPES_DEPRECATION_MESSAGE));
     }
 
 }

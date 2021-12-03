@@ -42,16 +42,10 @@ import org.opensearch.test.OpenSearchTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.opensearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class SnapshotRequestsTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testRestoreSnapshotRequestParsing() throws IOException {
         RestoreSnapshotRequest request = new RestoreSnapshotRequest("test-repo", "test-snap");
@@ -119,8 +113,7 @@ public class SnapshotRequestsTests extends OpenSearchTestCase {
         assertEquals(expectedIgnoreAvailable, request.indicesOptions().ignoreUnavailable());
 
         assertWarningsOnce(
-            Arrays.asList("specifying [settings] when restoring a snapshot has no effect and will not be supported in a future version"),
-            assertedWarnings
+            Arrays.asList("specifying [settings] when restoring a snapshot has no effect and will not be supported in a future version")
         );
     }
 

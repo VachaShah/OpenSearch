@@ -37,8 +37,6 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.test.OpenSearchTestCase;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import static org.opensearch.test.NodeRoles.onlyRole;
@@ -48,10 +46,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
 public class DiscoveryNodeRoleSettingTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testIsDataNode() {
         runRoleTest(DiscoveryNode::isDataNode, DiscoveryNodeRole.DATA_ROLE);
@@ -73,18 +67,18 @@ public class DiscoveryNodeRoleSettingTests extends OpenSearchTestCase {
         final Settings legacyTrue = Settings.builder().put(role.legacySetting().getKey(), true).build();
 
         assertTrue(predicate.test(legacyTrue));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() });
 
         assertThat(DiscoveryNode.getRolesFromSettings(legacyTrue), hasItem(role));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() });
 
         final Settings legacyFalse = Settings.builder().put(role.legacySetting().getKey(), false).build();
 
         assertFalse(predicate.test(legacyFalse));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() });
 
         assertThat(DiscoveryNode.getRolesFromSettings(legacyFalse), not(hasItem(role)));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() });
 
         assertTrue(predicate.test(onlyRole(role)));
         assertThat(DiscoveryNode.getRolesFromSettings(onlyRole(role)), hasItem(role));
@@ -95,7 +89,7 @@ public class DiscoveryNodeRoleSettingTests extends OpenSearchTestCase {
         final Settings settings = Settings.builder().put(onlyRole(role)).put(role.legacySetting().getKey(), randomBoolean()).build();
         final IllegalArgumentException e = expectThrows(IllegalArgumentException.class, () -> DiscoveryNode.getRolesFromSettings(settings));
         assertThat(e.getMessage(), startsWith("can not explicitly configure node roles and use legacy role setting"));
-        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() }, assertedWarnings);
+        assertSettingDeprecationsAndWarnings(new Setting<?>[] { role.legacySetting() });
     }
 
 }

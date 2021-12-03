@@ -49,11 +49,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.opensearch.index.query.QueryBuilders.boolQuery;
 import static org.opensearch.index.query.QueryBuilders.termQuery;
@@ -62,10 +60,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class BoolQueryBuilderTests extends AbstractQueryTestCase<BoolQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected BoolQueryBuilder doCreateTestQueryBuilder() {
@@ -349,7 +343,7 @@ public class BoolQueryBuilderTests extends AbstractQueryTestCase<BoolQueryBuilde
         QueryBuilder q = parseQuery(query);
         QueryBuilder expected = new BoolQueryBuilder().mustNot(new MatchAllQueryBuilder());
         assertEquals(expected, q);
-        assertWarningsOnce(Arrays.asList("Deprecated field [mustNot] used, expected [must_not] instead"), assertedWarnings);
+        assertWarningsOnce(Arrays.asList("Deprecated field [mustNot] used, expected [must_not] instead"));
     }
 
     public void testRewrite() throws IOException {

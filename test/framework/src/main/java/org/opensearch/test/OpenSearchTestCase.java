@@ -203,6 +203,10 @@ import static org.hamcrest.Matchers.hasItem;
 @LuceneTestCase.SuppressReproduceLine
 public abstract class OpenSearchTestCase extends LuceneTestCase {
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     protected static final List<String> JODA_TIMEZONE_IDS;
     protected static final List<String> JAVA_TIMEZONE_IDS;
     protected static final List<String> JAVA_ZONE_IDS;
@@ -473,23 +477,11 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
      * @param warnings other expected general deprecation warnings
      * @param assertedWarnings the deprecation warnings that are already asserted since we log same deprecation warnings only once to avoid duplication
      */
-    protected final void assertSettingDeprecationsAndWarnings(
-        final Setting<?>[] settings,
-        Set<String> assertedWarnings,
-        final String... warnings
-    ) {
-        assertSettingDeprecationsAndWarnings(
-            Arrays.stream(settings).map(Setting::getKey).toArray(String[]::new),
-            assertedWarnings,
-            warnings
-        );
+    protected final void assertSettingDeprecationsAndWarnings(final Setting<?>[] settings, final String... warnings) {
+        assertSettingDeprecationsAndWarnings(Arrays.stream(settings).map(Setting::getKey).toArray(String[]::new), warnings);
     }
 
-    protected final void assertSettingDeprecationsAndWarnings(
-        final String[] settings,
-        Set<String> assertedWarnings,
-        final String... warnings
-    ) {
+    protected final void assertSettingDeprecationsAndWarnings(final String[] settings, final String... warnings) {
         assertWarningsOnce(
             Stream.concat(
                 Arrays.stream(settings)
@@ -500,12 +492,11 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
                             + "See the breaking changes documentation for the next major version."
                     ),
                 Arrays.stream(warnings)
-            ).collect(Collectors.toList()),
-            assertedWarnings
+            ).collect(Collectors.toList())
         );
     }
 
-    protected final void assertWarningsOnce(List<String> expectedWarnings, Set<String> assertedWarnings) {
+    protected final void assertWarningsOnce(List<String> expectedWarnings) {
         List<String> uniqueExpectedWarnings = expectedWarnings.stream()
             .filter(expectedWarning -> !assertedWarnings.contains(expectedWarning))
             .collect(Collectors.toList());

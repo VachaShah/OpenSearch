@@ -45,18 +45,12 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.Mockito.mock;
 
 public class RestUpdateActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private RestUpdateAction action;
 
@@ -74,7 +68,7 @@ public class RestUpdateActionTests extends RestActionTestCase {
             .withPath("/some_index/some_type/some_id/_update")
             .build();
         dispatchRequest(deprecatedRequest);
-        assertWarningsOnce(Arrays.asList(RestUpdateAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestUpdateAction.TYPES_DEPRECATION_MESSAGE));
 
         RestRequest validRequest = new FakeRestRequest.Builder(xContentRegistry()).withMethod(Method.POST)
             .withPath("/some_index/_update/some_id")

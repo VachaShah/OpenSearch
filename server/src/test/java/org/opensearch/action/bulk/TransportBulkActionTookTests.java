@@ -74,7 +74,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
@@ -86,10 +85,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class TransportBulkActionTookTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static ThreadPool threadPool;
     private ClusterService clusterService;
@@ -249,7 +244,7 @@ public class TransportBulkActionTookTests extends OpenSearchTestCase {
             }
         });
         // This test's JSON contains outdated references to types
-        assertWarningsOnce(Arrays.asList(RestBulkAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
     }
 
     static class Resolver extends IndexNameExpressionResolver {

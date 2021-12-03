@@ -42,8 +42,6 @@ import org.junit.Before;
 import static org.opensearch.search.lookup.LeafDocLookup.TYPES_DEPRECATION_MESSAGE;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Matchers.anyObject;
@@ -52,10 +50,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LeafDocLookupTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private ScriptDocValues<?> docValues;
     private LeafDocLookup docLookup;
@@ -92,7 +86,7 @@ public class LeafDocLookupTests extends OpenSearchTestCase {
     public void testTypesDeprecation() {
         ScriptDocValues<?> fetchedDocValues = docLookup.get("_type");
         assertEquals(docValues, fetchedDocValues);
-        assertWarningsOnce(Arrays.asList(TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(TYPES_DEPRECATION_MESSAGE));
     }
 
     private IndexFieldData<?> createFieldData(ScriptDocValues scriptDocValues) {

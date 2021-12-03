@@ -41,15 +41,9 @@ import org.junit.Before;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class RestAddVotingConfigExclusionActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private RestAddVotingConfigExclusionAction action;
 
@@ -72,10 +66,7 @@ public class RestAddVotingConfigExclusionActionTests extends RestActionTestCase 
         assertArrayEquals(expected, addVotingConfigExclusionsRequest.getNodeDescriptions());
         assertArrayEquals(Strings.EMPTY_ARRAY, addVotingConfigExclusionsRequest.getNodeIds());
         assertArrayEquals(Strings.EMPTY_ARRAY, addVotingConfigExclusionsRequest.getNodeNames());
-        assertWarningsOnce(
-            Arrays.asList("nodeDescription is deprecated and will be removed, use nodeIds or nodeNames instead"),
-            assertedWarnings
-        );
+        assertWarningsOnce(Arrays.asList("nodeDescription is deprecated and will be removed, use nodeIds or nodeNames instead"));
     }
 
     public void testResolveVotingConfigExclusionsRequestNodeIds() {

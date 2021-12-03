@@ -52,17 +52,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.opensearch.index.mapper.IdFieldMapper.ID_FIELD_DATA_DEPRECATION_MESSAGE;
 import static org.hamcrest.Matchers.containsString;
 
 public class IdFieldMapperTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<Class<? extends Plugin>> getPlugins() {
@@ -113,7 +107,7 @@ public class IdFieldMapperTests extends OpenSearchSingleNodeTestCase {
         IdFieldMapper.IdFieldType ft = (IdFieldMapper.IdFieldType) service.mapperService().fieldType("_id");
 
         ft.fielddataBuilder("test", () -> { throw new UnsupportedOperationException(); }).build(null, null);
-        assertWarningsOnce(Arrays.asList(ID_FIELD_DATA_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(ID_FIELD_DATA_DEPRECATION_MESSAGE));
         assertTrue(ft.isAggregatable());
 
         client().admin()

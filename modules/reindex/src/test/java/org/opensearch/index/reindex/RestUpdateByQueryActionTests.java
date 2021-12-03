@@ -41,16 +41,10 @@ import org.junit.Before;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
 public class RestUpdateByQueryActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private RestUpdateByQueryAction action;
 
@@ -77,7 +71,7 @@ public class RestUpdateByQueryActionTests extends RestActionTestCase {
 
         // RestUpdateByQueryAction itself doesn't check for a deprecated type usage
         // checking here for a deprecation from its internal search request
-        assertWarningsOnce(Arrays.asList(RestSearchAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestSearchAction.TYPES_DEPRECATION_MESSAGE));
     }
 
     public void testParseEmpty() throws IOException {

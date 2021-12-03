@@ -47,9 +47,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
@@ -60,10 +58,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TypeParsersTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static Map<String, NamedAnalyzer> defaultAnalyzers() {
         Map<String, NamedAnalyzer> analyzers = new HashMap<>();
@@ -115,8 +109,7 @@ public class TypeParsersTests extends OpenSearchTestCase {
                     + "and will no longer be supported in 8.0. To resolve the issue, all instances of [fields] "
                     + "that occur within a [fields] block should be removed from the mappings, either by flattening the chained "
                     + "[fields] blocks into a single level, or switching to [copy_to] if appropriate."
-            ),
-            assertedWarnings
+            )
         );
     }
 

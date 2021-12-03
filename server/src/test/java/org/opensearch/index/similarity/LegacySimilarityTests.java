@@ -45,17 +45,11 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class LegacySimilarityTests extends OpenSearchSingleNodeTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected boolean forbidPrivateIndexSettings() {
@@ -73,8 +67,7 @@ public class LegacySimilarityTests extends OpenSearchSingleNodeTestCase {
                 "The [classic] similarity is now deprecated in favour of BM25, which is generally "
                     + "accepted as a better alternative. Use the [BM25] similarity or build a custom [scripted] similarity "
                     + "instead."
-            ),
-            assertedWarnings
+            )
         );
         assertThat(similarityService.getSimilarity("BM25").get(), instanceOf(LegacyBM25Similarity.class));
         assertThat(similarityService.getSimilarity("boolean").get(), instanceOf(BooleanSimilarity.class));

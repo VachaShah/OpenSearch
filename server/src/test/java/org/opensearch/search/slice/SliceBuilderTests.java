@@ -83,7 +83,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.opensearch.test.EqualsHashCodeTestUtils.checkEqualsAndHashCode;
@@ -95,10 +94,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SliceBuilderTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final int MAX_SLICE = 20;
 
@@ -379,10 +374,7 @@ public class SliceBuilderTests extends OpenSearchTestCase {
             Query query = builder.toFilter(null, createRequest(0), context, Version.CURRENT);
             assertThat(query, instanceOf(TermsSliceQuery.class));
             assertThat(builder.toFilter(null, createRequest(0), context, Version.CURRENT), equalTo(query));
-            assertWarningsOnce(
-                Arrays.asList("Computing slices on the [_uid] field is deprecated for 6.x indices, use [_id] instead"),
-                assertedWarnings
-            );
+            assertWarningsOnce(Arrays.asList("Computing slices on the [_uid] field is deprecated for 6.x indices, use [_id] instead"));
         }
     }
 

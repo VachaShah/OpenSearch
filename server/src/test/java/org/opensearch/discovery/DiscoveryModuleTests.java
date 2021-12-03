@@ -57,10 +57,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -69,10 +67,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DiscoveryModuleTests extends OpenSearchTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     private TransportService transportService;
     private NamedWriteableRegistry namedWriteableRegistry;
@@ -165,8 +159,7 @@ public class DiscoveryModuleTests extends OpenSearchTestCase {
             Arrays.asList(
                 "[discovery.zen.hosts_provider] setting was deprecated in OpenSearch and will be removed in a future release! "
                     + "See the breaking changes documentation for the next major version."
-            ),
-            assertedWarnings
+            )
         );
     }
 

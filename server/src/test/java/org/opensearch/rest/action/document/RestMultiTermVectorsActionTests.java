@@ -45,15 +45,9 @@ import org.junit.Before;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class RestMultiTermVectorsActionTests extends RestActionTestCase {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -69,7 +63,7 @@ public class RestMultiTermVectorsActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestMultiTermVectorsAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiTermVectorsAction.TYPES_DEPRECATION_MESSAGE));
     }
 
     public void testTypeParameter() {
@@ -85,7 +79,7 @@ public class RestMultiTermVectorsActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestMultiTermVectorsAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestMultiTermVectorsAction.TYPES_DEPRECATION_MESSAGE));
     }
 
     public void testTypeInBody() throws IOException {
@@ -108,6 +102,6 @@ public class RestMultiTermVectorsActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarningsOnce(Arrays.asList(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+        assertWarningsOnce(Arrays.asList(RestTermVectorsAction.TYPES_DEPRECATION_MESSAGE));
     }
 }

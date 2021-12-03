@@ -62,8 +62,6 @@ import org.locationtech.jts.geom.Coordinate;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -72,10 +70,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
 public abstract class GeoShapeQueryBuilderTests extends AbstractQueryTestCase<GeoShapeQueryBuilder> {
-
-    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
-    // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
 
     protected static String indexedShapeId;
     protected static String indexedShapeType;
@@ -276,7 +270,7 @@ public abstract class GeoShapeQueryBuilderTests extends AbstractQueryTestCase<Ge
 
         GeoShapeQueryBuilder shapeQuery = (GeoShapeQueryBuilder) query;
         if (shapeQuery.indexedShapeType() != null) {
-            assertWarningsOnce(Arrays.asList(GeoShapeQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
+            assertWarningsOnce(Arrays.asList(GeoShapeQueryBuilder.TYPES_DEPRECATION_MESSAGE));
         }
         return query;
     }
