@@ -44,12 +44,19 @@ import org.opensearch.index.mapper.MappedFieldType;
 import org.opensearch.index.mapper.TypeFieldMapper;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.either;
 
 public class TermQueryBuilderTests extends AbstractTermQueryTestCase<TermQueryBuilder> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected TermQueryBuilder doCreateTestQueryBuilder() {
@@ -201,7 +208,7 @@ public class TermQueryBuilderTests extends AbstractTermQueryTestCase<TermQueryBu
     public void testTypeField() throws IOException {
         TermQueryBuilder builder = QueryBuilders.termQuery("_type", "value1");
         builder.doToQuery(createShardContext());
-        assertWarnings(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     public void testRewriteIndexQueryToMatchNone() throws IOException {

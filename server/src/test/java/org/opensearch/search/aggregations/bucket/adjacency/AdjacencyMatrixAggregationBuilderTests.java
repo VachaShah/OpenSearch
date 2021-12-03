@@ -45,9 +45,12 @@ import org.opensearch.search.internal.SearchContext;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.TestSearchContext;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -55,6 +58,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AdjacencyMatrixAggregationBuilderTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testFilterSizeLimitation() throws Exception {
         // filter size grater than max size should thrown a exception
@@ -101,9 +108,12 @@ public class AdjacencyMatrixAggregationBuilderTests extends OpenSearchTestCase {
         AggregatorFactory factory = aggregationBuilder.doBuild(context.getQueryShardContext(), null, new AggregatorFactories.Builder());
         assertThat(factory instanceof AdjacencyMatrixAggregatorFactory, is(true));
         assertThat(factory.name(), equalTo("dummy"));
-        assertWarnings(
-            "[index.max_adjacency_matrix_filters] setting was deprecated in OpenSearch and will be "
-                + "removed in a future release! See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[index.max_adjacency_matrix_filters] setting was deprecated in OpenSearch and will be "
+                    + "removed in a future release! See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 }

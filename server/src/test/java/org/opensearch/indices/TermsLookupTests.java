@@ -39,11 +39,19 @@ import org.opensearch.common.xcontent.XContentParser;
 import org.opensearch.common.xcontent.json.JsonXContent;
 import org.opensearch.test.OpenSearchTestCase;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.containsString;
 
 public class TermsLookupTests extends OpenSearchTestCase {
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testTermsLookup() {
         String index = randomAlphaOfLengthBetween(1, 10);
         String type = randomAlphaOfLengthBetween(1, 10);
@@ -135,7 +143,10 @@ public class TermsLookupTests extends OpenSearchTestCase {
         assertEquals("path", tl.path());
         assertEquals("routing", tl.routing());
 
-        assertWarnings("Deprecated field [type] used, this field is unused and will be removed entirely");
+        assertWarningsOnce(
+            Arrays.asList("Deprecated field [type] used, this field is unused and will be removed entirely"),
+            assertedWarnings
+        );
     }
 
     public void testXContentParsing() throws IOException {

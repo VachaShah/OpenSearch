@@ -47,11 +47,18 @@ import java.util.Set;
 public class DeprecatedMessage extends OpenSearchLogMessage {
     public static final String X_OPAQUE_ID_FIELD_NAME = "x-opaque-id";
     private static Set<String> keys = new HashSet<>();
-    private String key;
+    // private String key;
+    // private String xOpaqueId;
+    private String keyWithXOpaqueId;
 
     public DeprecatedMessage(String key, String xOpaqueId, String messagePattern, Object... args) {
         super(fieldMap(key, xOpaqueId), messagePattern, args);
-        this.key = key;
+        // this.key = key;
+        // this.xOpaqueId = xOpaqueId;
+        this.keyWithXOpaqueId = new StringBuilder().append(key).append(xOpaqueId).toString();
+        // System.out.println("Values");
+        // System.out.println(key);
+        // System.out.println(messagePattern);
     }
 
     private static Map<String, Object> fieldMap(String key, String xOpaqueId) {
@@ -66,10 +73,12 @@ public class DeprecatedMessage extends OpenSearchLogMessage {
     }
 
     public boolean isAlreadyLogged() {
-        if (keys.contains(this.key)) {
+        // System.out.println("Keys: " + keys);
+        if (keys.contains(this.keyWithXOpaqueId)) {
             return true;
         }
-        keys.add(this.key);
+        keys.add(this.keyWithXOpaqueId);
+        // System.out.println("Keys now: " + keys);
         return false;
     }
 }

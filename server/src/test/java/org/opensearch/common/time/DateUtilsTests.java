@@ -58,6 +58,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class DateUtilsTests extends OpenSearchTestCase {
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
     private static final Set<String> IGNORE = new HashSet<>(Arrays.asList("Pacific/Enderbury", "Pacific/Kanton", "Pacific/Niue"));
 
     public void testTimezoneIds() {
@@ -74,7 +77,10 @@ public class DateUtilsTests extends OpenSearchTestCase {
                 equalTo(jodaTz.getOffset(now))
             );
             if (DateUtils.DEPRECATED_SHORT_TIMEZONES.containsKey(jodaTz.getID())) {
-                assertWarnings("Use of short timezone id " + jodaId + " is deprecated. Use " + zoneId.getId() + " instead");
+                assertWarningsOnce(
+                    Arrays.asList("Use of short timezone id " + jodaId + " is deprecated. Use " + zoneId.getId() + " instead"),
+                    assertedWarnings
+                );
             }
             // roundtrip does not throw either
             assertNotNull(DateUtils.zoneIdToDateTimeZone(zoneId));

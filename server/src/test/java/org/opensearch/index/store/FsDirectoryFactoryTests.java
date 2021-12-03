@@ -56,9 +56,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public class FsDirectoryFactoryTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testPreload() throws IOException {
         doTestPreload();
@@ -164,9 +170,12 @@ public class FsDirectoryFactoryTests extends OpenSearchTestCase {
                     assertTrue(type + " " + directory.toString(), directory instanceof MMapDirectory);
                     break;
                 case SIMPLEFS:
-                    assertWarnings(
-                        "simplefs is no longer supported and will be removed in 2.0. Use [niofs], which offers equal "
-                            + "or better performance, instead."
+                    assertWarningsOnce(
+                        Arrays.asList(
+                            "simplefs is no longer supported and will be removed in 2.0. Use [niofs], which offers equal "
+                                + "or better performance, instead."
+                        ),
+                        assertedWarnings
                     );
                     assertTrue(type + " " + directory.toString(), directory instanceof SimpleFSDirectory);
                     break;

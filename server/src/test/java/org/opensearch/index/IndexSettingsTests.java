@@ -61,6 +61,10 @@ import static org.hamcrest.object.HasToString.hasToString;
 
 public class IndexSettingsTests extends OpenSearchTestCase {
 
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testRunListener() {
         Version version = VersionUtils.getPreviousVersion();
         Settings theSettings = Settings.builder()
@@ -474,9 +478,12 @@ public class IndexSettingsTests extends OpenSearchTestCase {
             IndexSettings.MAX_ADJACENCY_MATRIX_FILTERS_SETTING.get(Settings.EMPTY).intValue(),
             settings.getMaxAdjacencyMatrixFilters()
         );
-        assertWarnings(
-            "[index.max_adjacency_matrix_filters] setting was deprecated in OpenSearch and will be removed in a "
-                + "future release! See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[index.max_adjacency_matrix_filters] setting was deprecated in OpenSearch and will be removed in a "
+                    + "future release! See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 

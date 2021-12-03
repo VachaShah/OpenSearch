@@ -43,13 +43,21 @@ import org.opensearch.test.rest.RestActionTestCase;
 import org.junit.Before;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.opensearch.rest.BaseRestHandler.INCLUDE_TYPE_NAME_PARAMETER;
 import static org.mockito.Mockito.mock;
 
 public class RestPutIndexTemplateActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     private RestPutIndexTemplateAction action;
 
     @Before
@@ -87,6 +95,6 @@ public class RestPutIndexTemplateActionTests extends RestActionTestCase {
             .withContent(BytesReference.bytes(typedContent), XContentType.JSON)
             .build();
         action.prepareRequest(request, mock(NodeClient.class));
-        assertWarnings(RestPutIndexTemplateAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestPutIndexTemplateAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
     }
 }

@@ -36,9 +36,18 @@ import org.opensearch.rest.RestRequest;
 import org.opensearch.rest.RestRequest.Method;
 import org.opensearch.test.rest.FakeRestRequest;
 import org.opensearch.test.rest.RestActionTestCase;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Before;
 
 public class RestDeleteActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -53,7 +62,7 @@ public class RestDeleteActionTests extends RestActionTestCase {
             .withPath("/some_index/some_type/some_id")
             .build();
         dispatchRequest(deprecatedRequest);
-        assertWarnings(RestDeleteAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestDeleteAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
 
         RestRequest validRequest = new FakeRestRequest.Builder(xContentRegistry()).withMethod(Method.DELETE)
             .withPath("/some_index/_doc/some_id")

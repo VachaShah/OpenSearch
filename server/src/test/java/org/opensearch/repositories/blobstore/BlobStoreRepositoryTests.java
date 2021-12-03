@@ -63,8 +63,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,6 +78,10 @@ import static org.hamcrest.Matchers.nullValue;
  * Tests for the {@link BlobStoreRepository} and its subclasses.
  */
 public class BlobStoreRepositoryTests extends OpenSearchSingleNodeTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     static final String REPO_TYPE = "fsLike";
 
@@ -266,9 +272,12 @@ public class BlobStoreRepositoryTests extends OpenSearchSingleNodeTestCase {
 
         new FsRepository(metadata, useCompressEnvironment, null, BlobStoreTestUtil.mockClusterService(), null);
 
-        assertWarnings(
-            "[repositories.fs.compress] setting was deprecated in OpenSearch and will be removed in a future release!"
-                + " See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[repositories.fs.compress] setting was deprecated in OpenSearch and will be removed in a future release!"
+                    + " See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 

@@ -49,7 +49,10 @@ import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.transport.Transport;
 import org.opensearch.transport.TransportService;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.mock;
@@ -59,6 +62,10 @@ import static org.mockito.Mockito.when;
 import static org.opensearch.action.main.TransportMainAction.OVERRIDE_MAIN_RESPONSE_VERSION_KEY;
 
 public class MainActionTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testMainActionClusterAvailable() {
         final ClusterService clusterService = mock(ClusterService.class);
@@ -169,6 +176,6 @@ public class MainActionTests extends OpenSearchTestCase {
 
         final MainResponse mainResponse = responseRef.get();
         assertEquals(LegacyESVersion.V_7_10_2.toString(), mainResponse.getVersionNumber());
-        assertWarnings(TransportMainAction.OVERRIDE_MAIN_RESPONSE_VERSION_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(TransportMainAction.OVERRIDE_MAIN_RESPONSE_VERSION_DEPRECATION_MESSAGE), assertedWarnings);
     }
 }

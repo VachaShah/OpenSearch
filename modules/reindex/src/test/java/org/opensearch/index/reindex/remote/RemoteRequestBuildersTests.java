@@ -47,7 +47,10 @@ import org.opensearch.test.OpenSearchTestCase;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.opensearch.common.unit.TimeValue.timeValueMillis;
 import static org.opensearch.index.reindex.remote.RemoteRequestBuilders.DEPRECATED_URL_ENCODED_INDEX_WARNING;
@@ -71,6 +74,11 @@ import static org.hamcrest.Matchers.not;
  * features from this file just because the version constants have been removed.
  */
 public class RemoteRequestBuildersTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testIntialSearchPath() {
         Version remoteVersion = Version.fromId(between(0, Version.CURRENT.id));
         BytesReference query = new BytesArray("{}");
@@ -100,7 +108,7 @@ public class RemoteRequestBuildersTests extends OpenSearchTestCase {
         searchRequest.indices("%2f", "%3a");
         assertEquals("/%2f,%3a/c,d/_search", initialSearch(searchRequest, query, remoteVersion).getEndpoint());
 
-        assertWarnings(DEPRECATED_URL_ENCODED_INDEX_WARNING);
+        assertWarningsOnce(Arrays.asList(DEPRECATED_URL_ENCODED_INDEX_WARNING), assertedWarnings);
 
         // do not allow , and / if already escaped.
         searchRequest.indices("%2fcat,");

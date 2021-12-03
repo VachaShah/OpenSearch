@@ -44,13 +44,20 @@ import org.opensearch.test.rest.FakeRestRequest;
 import org.opensearch.test.rest.RestActionTestCase;
 import org.junit.Before;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 
 public class RestForceMergeActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -86,8 +93,12 @@ public class RestForceMergeActionTests extends RestActionTestCase {
         verifyingClient.setExecuteVerifier((arg1, arg2) -> null);
 
         dispatchRequest(request);
-        assertWarnings(
-            "setting only_expunge_deletes and max_num_segments at the same time is deprecated " + "and will be rejected in a future version"
+        assertWarningsOnce(
+            Arrays.asList(
+                "setting only_expunge_deletes and max_num_segments at the same time is deprecated "
+                    + "and will be rejected in a future version"
+            ),
+            assertedWarnings
         );
     }
 }

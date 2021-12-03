@@ -41,12 +41,19 @@ import org.opensearch.test.rest.FakeRestRequest;
 import org.opensearch.test.rest.RestActionTestCase;
 import org.junit.Before;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.opensearch.rest.BaseRestHandler.INCLUDE_TYPE_NAME_PARAMETER;
 
 public class RestGetFieldMappingActionTests extends RestActionTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Before
     public void setUpAction() {
@@ -72,7 +79,7 @@ public class RestGetFieldMappingActionTests extends RestActionTestCase {
             .withParams(params)
             .build();
         dispatchRequest(deprecatedRequest);
-        assertWarnings(RestGetFieldMappingAction.TYPES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(RestGetFieldMappingAction.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
 
         RestRequest validRequest = new FakeRestRequest.Builder(xContentRegistry()).withMethod(RestRequest.Method.GET)
             .withPath("some_index/_mapping/field/some_field")

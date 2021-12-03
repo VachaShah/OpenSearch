@@ -38,14 +38,21 @@ import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.rest.FakeRestRequest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasToString;
 import static org.mockito.Mockito.mock;
 
 public class RestResizeHandlerTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testShrinkCopySettingsDeprecated() throws IOException {
         final RestResizeHandler.RestShrinkIndexAction handler = new RestResizeHandler.RestShrinkIndexAction();
@@ -82,7 +89,7 @@ public class RestResizeHandlerTests extends OpenSearchTestCase {
         } else {
             handler.prepareRequest(request, mock(NodeClient.class));
             if ("".equals(copySettings) || "true".equals(copySettings)) {
-                assertWarnings("parameter [copy_settings] is deprecated and will be removed in 8.0.0");
+                assertWarningsOnce(Arrays.asList("parameter [copy_settings] is deprecated and will be removed in 8.0.0"), assertedWarnings);
             }
         }
     }

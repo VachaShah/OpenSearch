@@ -32,12 +32,20 @@
 
 package org.opensearch.index.mapper;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.opensearch.LegacyESVersion;
 import org.opensearch.cluster.metadata.IndexMetadata;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 public class LegacyTypeFieldMapperTests extends OpenSearchSingleNodeTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected boolean forbidPrivateIndexSettings() {
@@ -51,7 +59,12 @@ public class LegacyTypeFieldMapperTests extends OpenSearchSingleNodeTestCase {
                 .build();
             return this.createIndex(index, settings);
         });
-        assertWarnings("[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead.");
+        assertWarningsOnce(
+            Arrays.asList(
+                "[types removal] Using the _type field in queries and aggregations is deprecated, prefer to use a field instead."
+            ),
+            assertedWarnings
+        );
     }
 
 }

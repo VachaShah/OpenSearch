@@ -83,6 +83,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,6 +97,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
 public class AnalysisModuleTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
     private final Settings emptyNodeSettings = Settings.builder()
         .put(Environment.PATH_HOME_SETTING.getKey(), createTempDir().toString())
         .build();
@@ -266,7 +271,10 @@ public class AnalysisModuleTests extends OpenSearchTestCase {
                 .put(IndexMetadata.SETTING_VERSION_CREATED, version)
                 .build();
             getIndexAnalyzers(settings);
-            assertWarnings("The [standard] token filter is deprecated and will be removed in a future version.");
+            assertWarningsOnce(
+                Arrays.asList("The [standard] token filter is deprecated and will be removed in a future version."),
+                assertedWarnings
+            );
         }
     }
 

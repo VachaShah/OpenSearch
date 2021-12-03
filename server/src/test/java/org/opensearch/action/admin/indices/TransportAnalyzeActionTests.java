@@ -64,9 +64,12 @@ import org.opensearch.test.IndexSettingsModule;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -78,6 +81,10 @@ import static org.mockito.Mockito.when;
  * more exercise.
  */
 public class TransportAnalyzeActionTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private IndexAnalyzers indexAnalyzers;
     private IndexSettings indexSettings;
@@ -589,7 +596,7 @@ public class TransportAnalyzeActionTests extends OpenSearchTestCase {
 
         AnalyzeAction.Response analyze = TransportAnalyzeAction.analyze(req, registry, mockIndexService(), maxTokenCount);
         assertEquals(2, analyze.getTokens().size());
-        assertWarnings("Using deprecated token filter [deprecated]");
+        assertWarningsOnce(Arrays.asList("Using deprecated token filter [deprecated]"), assertedWarnings);
 
         // normalizer
         req = new AnalyzeAction.Request();

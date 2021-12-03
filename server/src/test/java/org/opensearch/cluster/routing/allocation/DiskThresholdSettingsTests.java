@@ -37,7 +37,10 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.common.unit.ByteSizeValue;
 import org.opensearch.test.OpenSearchTestCase;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
@@ -45,6 +48,10 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class DiskThresholdSettingsTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testDefaults() {
         ClusterSettings nss = new ClusterSettings(Settings.EMPTY, ClusterSettings.BUILT_IN_CLUSTER_SETTINGS);
@@ -87,9 +94,12 @@ public class DiskThresholdSettingsTests extends OpenSearchTestCase {
         assertFalse(diskThresholdSettings.isEnabled());
         assertFalse(diskThresholdSettings.includeRelocations());
 
-        assertWarnings(
-            "[cluster.routing.allocation.disk.include_relocations] setting was deprecated in OpenSearch and "
-                + "will be removed in a future release! See the breaking changes documentation for the next major version."
+        assertWarningsOnce(
+            Arrays.asList(
+                "[cluster.routing.allocation.disk.include_relocations] setting was deprecated in OpenSearch and "
+                    + "will be removed in a future release! See the breaking changes documentation for the next major version."
+            ),
+            assertedWarnings
         );
     }
 

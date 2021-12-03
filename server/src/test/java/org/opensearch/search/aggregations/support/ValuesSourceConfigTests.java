@@ -32,6 +32,10 @@
 
 package org.opensearch.search.aggregations.support;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.SortedNumericDocValues;
 import org.apache.lucene.util.BytesRef;
@@ -46,6 +50,10 @@ import org.opensearch.test.OpenSearchSingleNodeTestCase;
 
 // TODO: This whole set of tests needs to be rethought.
 public class ValuesSourceConfigTests extends OpenSearchSingleNodeTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testKeyword() throws Exception {
         IndexService indexService = createIndex("index", Settings.EMPTY, "type", "bytes", "type=keyword");
@@ -325,7 +333,7 @@ public class ValuesSourceConfigTests extends OpenSearchSingleNodeTestCase {
                 null,
                 CoreValuesSourceType.BYTES
             );
-            assertWarnings(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE);
+            assertWarningsOnce(Arrays.asList(TypeFieldMapper.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
         }
     }
 

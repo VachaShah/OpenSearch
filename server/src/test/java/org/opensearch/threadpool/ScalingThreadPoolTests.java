@@ -36,8 +36,11 @@ import org.opensearch.common.settings.ClusterSettings;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.util.concurrent.OpenSearchThreadPoolExecutor;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +51,10 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.equalTo;
 
 public class ScalingThreadPoolTests extends OpenSearchThreadPoolTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testScalingThreadPoolConfiguration() throws InterruptedException {
         final String threadPoolName = randomThreadPool(ThreadPool.ThreadPoolType.SCALING);
@@ -112,12 +119,15 @@ public class ScalingThreadPoolTests extends OpenSearchThreadPoolTestCase {
         });
 
         if (processorsUsed > availableProcessors) {
-            assertWarnings(
-                "setting [node.processors] to value ["
-                    + processorsUsed
-                    + "] which is more than available processors ["
-                    + availableProcessors
-                    + "] is deprecated"
+            assertWarningsOnce(
+                Arrays.asList(
+                    "setting [node.processors] to value ["
+                        + processorsUsed
+                        + "] which is more than available processors ["
+                        + availableProcessors
+                        + "] is deprecated"
+                ),
+                assertedWarnings
             );
         }
     }

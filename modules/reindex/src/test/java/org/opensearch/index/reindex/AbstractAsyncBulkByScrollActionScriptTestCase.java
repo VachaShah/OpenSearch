@@ -41,8 +41,11 @@ import org.opensearch.index.reindex.AbstractAsyncBulkByScrollAction.RequestWrapp
 import org.opensearch.script.ScriptService;
 import org.opensearch.script.UpdateScript;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonMap;
@@ -55,6 +58,10 @@ import static org.mockito.Mockito.when;
 public abstract class AbstractAsyncBulkByScrollActionScriptTestCase<
     Request extends AbstractBulkIndexByScrollRequest<Request>,
     Response extends BulkByScrollResponse> extends AbstractAsyncBulkByScrollActionTestCase<Request, Response> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     protected ScriptService scriptService;
 
@@ -81,7 +88,7 @@ public abstract class AbstractAsyncBulkByScrollActionScriptTestCase<
 
     public void testTypeDeprecation() {
         applyScript((Map<String, Object> ctx) -> ctx.get("_type"));
-        assertWarnings("[types removal] Looking up doc types [_type] in scripts is deprecated.");
+        assertWarningsOnce(Arrays.asList("[types removal] Looking up doc types [_type] in scripts is deprecated."), assertedWarnings);
     }
 
     public void testScriptAddingJunkToCtxIsError() {

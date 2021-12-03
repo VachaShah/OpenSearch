@@ -42,10 +42,17 @@ import org.opensearch.test.OpenSearchTestCase;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class TransportInfoTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private TransportInfo createTransportInfo(InetAddress address, int port, boolean cnameInPublishAddress) {
         BoundTransportAddress boundAddress = new BoundTransportAddress(
@@ -66,14 +73,17 @@ public class TransportInfoTests extends OpenSearchTestCase {
         InetAddress address = InetAddress.getByName("localhost");
         int port = 9200;
         assertPublishAddress(createTransportInfo(address, port, false), NetworkAddress.format(address) + ':' + port);
-        assertWarnings(
-            "transport.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
-                + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
-                + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting.",
+        assertWarningsOnce(
+            Arrays.asList(
+                "transport.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
+                    + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
+                    + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting.",
 
-            "transport.test_profile.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
-                + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
-                + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting."
+                "transport.test_profile.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
+                    + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
+                    + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting."
+            ),
+            assertedWarnings
         );
     }
 

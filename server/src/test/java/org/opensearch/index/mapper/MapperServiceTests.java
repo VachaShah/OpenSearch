@@ -65,7 +65,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -74,6 +76,10 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 public class MapperServiceTests extends OpenSearchSingleNodeTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<Class<? extends Plugin>> getPlugins() {
@@ -222,7 +228,7 @@ public class MapperServiceTests extends OpenSearchSingleNodeTestCase {
         assertThat(mapperService.unmappedFieldType("long"), instanceOf(NumberFieldType.class));
         // back compat
         assertThat(mapperService.unmappedFieldType("string"), instanceOf(KeywordFieldType.class));
-        assertWarnings("[unmapped_type:string] should be replaced with [unmapped_type:keyword]");
+        assertWarningsOnce(Arrays.asList("[unmapped_type:string] should be replaced with [unmapped_type:keyword]"), assertedWarnings);
     }
 
     public void testPartitionedConstraints() {

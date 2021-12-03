@@ -38,11 +38,18 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 public class JodaTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testBasicTTimePattern() {
         DateFormatter formatter1 = Joda.forPattern("basic_t_time");
@@ -52,9 +59,12 @@ public class JodaTests extends OpenSearchTestCase {
         DateFormatter formatter2 = Joda.forPattern("basicTTime");
         assertEquals(formatter2.pattern(), "basicTTime");
         assertEquals(formatter2.zone(), ZoneOffset.UTC);
-        assertWarnings(
-            "Camel case format name basicTTime is deprecated and will be removed in a future version. "
-                + "Use snake case name basic_t_time instead."
+        assertWarningsOnce(
+            Arrays.asList(
+                "Camel case format name basicTTime is deprecated and will be removed in a future version. "
+                    + "Use snake case name basic_t_time instead."
+            ),
+            assertedWarnings
         );
         DateTime dt = new DateTime(2004, 6, 9, 10, 20, 30, 40, DateTimeZone.UTC);
         assertEquals("T102030.040Z", formatter1.formatJoda(dt));

@@ -54,9 +54,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -64,6 +66,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ParametrizedMapperTests extends MapperServiceTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public static class TestPlugin extends Plugin implements MapperPlugin {
         @Override
@@ -411,7 +417,7 @@ public class ParametrizedMapperTests extends MapperServiceTestCase {
         String mapping = "{\"type\":\"test_mapper\",\"fixed2_old\":true,\"required\":\"value\"}";
         TestMapper mapper = fromMapping(mapping);
         assertTrue(mapper.fixed2);
-        assertWarnings("Parameter [fixed2_old] on mapper [field] is deprecated, use [fixed2]");
+        assertWarningsOnce(Arrays.asList("Parameter [fixed2_old] on mapper [field] is deprecated, use [fixed2]"), assertedWarnings);
         assertEquals("{\"field\":{\"type\":\"test_mapper\",\"fixed2\":true,\"required\":\"value\"}}", Strings.toString(mapper));
     }
 
@@ -444,7 +450,10 @@ public class ParametrizedMapperTests extends MapperServiceTestCase {
         // 'index' is declared explicitly, 'store' is not, but is one of the previously always-accepted params
         String mapping = "{\"type\":\"test_mapper\",\"index\":false,\"store\":true,\"required\":\"value\"}";
         TestMapper mapper = fromMapping(mapping, LegacyESVersion.V_7_8_0);
-        assertWarnings("Parameter [store] has no effect on type [test_mapper] and will be removed in future");
+        assertWarningsOnce(
+            Arrays.asList("Parameter [store] has no effect on type [test_mapper] and will be removed in future"),
+            assertedWarnings
+        );
         assertFalse(mapper.index);
         assertEquals("{\"field\":{\"type\":\"test_mapper\",\"index\":false,\"required\":\"value\"}}", Strings.toString(mapper));
     }

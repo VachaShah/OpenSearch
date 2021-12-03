@@ -66,6 +66,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -77,6 +78,10 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class MoreLikeThisQueryBuilderTests extends AbstractQueryTestCase<MoreLikeThisQueryBuilder> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     private static final String[] SHUFFLE_PROTECTED_FIELDS = new String[] { MoreLikeThisQueryBuilder.DOC.getPreferredName() };
 
@@ -481,7 +486,7 @@ public class MoreLikeThisQueryBuilderTests extends AbstractQueryTestCase<MoreLik
 
         MoreLikeThisQueryBuilder mltQuery = (MoreLikeThisQueryBuilder) query;
         if (mltQuery.isTypeless() == false) {
-            assertWarnings(MoreLikeThisQueryBuilder.TYPES_DEPRECATION_MESSAGE);
+            assertWarningsOnce(Arrays.asList(MoreLikeThisQueryBuilder.TYPES_DEPRECATION_MESSAGE), assertedWarnings);
         }
         return query;
     }

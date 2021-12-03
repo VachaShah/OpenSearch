@@ -44,12 +44,18 @@ import org.opensearch.plugins.Plugin;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
 
 public class ScaledFloatFieldMapperTests extends MapperTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected Collection<? extends Plugin> getPlugins() {
@@ -317,6 +323,9 @@ public class ScaledFloatFieldMapperTests extends MapperTestCase {
             () -> createMapperService(fieldMapping(b -> b.field("type", "scaled_float").field("index_options", randomIndexOptions())))
         );
         assertThat(e.getMessage(), containsString("Failed to parse mapping [_doc]: Field [scaling_factor] is required"));
-        assertWarnings("Parameter [index_options] has no effect on type [scaled_float] and will be removed in future");
+        assertWarningsOnce(
+            Arrays.asList("Parameter [index_options] has no effect on type [scaled_float] and will be removed in future"),
+            assertedWarnings
+        );
     }
 }

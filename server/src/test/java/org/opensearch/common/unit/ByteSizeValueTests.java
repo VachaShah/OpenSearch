@@ -38,12 +38,20 @@ import org.opensearch.test.AbstractWireSerializingTestCase;
 import org.hamcrest.MatcherAssert;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class ByteSizeValueTests extends AbstractWireSerializingTestCase<ByteSizeValue> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public void testActualPeta() {
         MatcherAssert.assertThat(new ByteSizeValue(4, ByteSizeUnit.PB).getBytes(), equalTo(4503599627370496L));
     }
@@ -338,10 +346,13 @@ public class ByteSizeValueTests extends AbstractWireSerializingTestCase<ByteSize
         String fractionalValue = "23.5" + unit.getSuffix();
         ByteSizeValue instance = ByteSizeValue.parseBytesSizeValue(fractionalValue, "test");
         assertEquals(fractionalValue, instance.toString());
-        assertWarnings(
-            "Fractional bytes values are deprecated. Use non-fractional bytes values instead: ["
-                + fractionalValue
-                + "] found for setting [test]"
+        assertWarningsOnce(
+            Arrays.asList(
+                "Fractional bytes values are deprecated. Use non-fractional bytes values instead: ["
+                    + fractionalValue
+                    + "] found for setting [test]"
+            ),
+            assertedWarnings
         );
     }
 

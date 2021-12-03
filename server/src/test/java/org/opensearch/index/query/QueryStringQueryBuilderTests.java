@@ -88,9 +88,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static org.opensearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.opensearch.index.query.AbstractQueryBuilder.parseInnerQueryBuilder;
@@ -103,6 +105,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class QueryStringQueryBuilderTests extends AbstractQueryTestCase<QueryStringQueryBuilder> {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected void initializeAdditionalMappings(MapperService mapperService) throws IOException {
@@ -1101,7 +1107,7 @@ public class QueryStringQueryBuilderTests extends AbstractQueryTestCase<QueryStr
                     MapperService.MergeReason.MAPPING_UPDATE
                 );
         }
-        assertWarnings(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(FieldNamesFieldMapper.ENABLED_DEPRECATION_MESSAGE), assertedWarnings);
     }
 
     public void testFromJson() throws IOException {

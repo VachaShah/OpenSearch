@@ -48,12 +48,18 @@ import org.opensearch.test.OpenSearchTestCase;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.contains;
 
 public class IndexTemplateMetadataTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     public void testIndexTemplateMetadataXContentRoundTrip() throws Exception {
         ToXContent.Params params = new ToXContent.MapParams(singletonMap("reduce_mappings", "true"));
@@ -241,8 +247,11 @@ public class IndexTemplateMetadataTests extends OpenSearchTestCase {
         builder.putMapping("type2", "{\"type2\":{}}");
         builder.build();
 
-        assertWarnings(
-            "Index template my-template contains multiple typed mappings; " + "templates in 8x will only support a single mapping"
+        assertWarningsOnce(
+            Arrays.asList(
+                "Index template my-template contains multiple typed mappings; " + "templates in 8x will only support a single mapping"
+            ),
+            assertedWarnings
         );
     }
 }

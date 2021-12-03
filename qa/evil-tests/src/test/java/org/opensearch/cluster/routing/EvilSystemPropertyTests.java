@@ -38,7 +38,15 @@ import org.opensearch.test.OpenSearchTestCase;
 
 import static org.hamcrest.Matchers.equalTo;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class EvilSystemPropertyTests extends OpenSearchTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @SuppressForbidden(reason = "manipulates system properties for testing")
     public void testDisableSearchAllocationAwareness() {
@@ -47,7 +55,7 @@ public class EvilSystemPropertyTests extends OpenSearchTestCase {
             .build();
         OperationRouting routing = new OperationRouting(indexSettings,
             new ClusterSettings(Settings.EMPTY, ClusterSettings.BUILT_IN_CLUSTER_SETTINGS));
-        assertWarnings(OperationRouting.IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE);
+        assertWarningsOnce(Arrays.asList(OperationRouting.IGNORE_AWARENESS_ATTRIBUTES_DEPRECATION_MESSAGE), assertedWarnings);
         assertThat(routing.getAwarenessAttributes().size(), equalTo(1));
         assertThat(routing.getAwarenessAttributes().get(0), equalTo("test"));
         System.setProperty("opensearch.search.ignore_awareness_attributes", "true");

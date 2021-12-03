@@ -43,10 +43,18 @@ import org.opensearch.test.IndexSettingsModule;
 import org.opensearch.test.VersionUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class AnalysisPhoneticFactoryTests extends AnalysisFactoryTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
+
     public AnalysisPhoneticFactoryTests() {
         super(new AnalysisPhoneticPlugin());
     }
@@ -93,7 +101,7 @@ public class AnalysisPhoneticFactoryTests extends AnalysisFactoryTestCase {
         tff = plugin.getTokenFilters().get("phonetic").get(idxSettings, null, "phonetic", settings);
         tff.getSynonymFilter();
 
-        assertWarnings("Token filter [phonetic] will not be usable to parse synonyms after v7.0");
+        assertWarningsOnce(Arrays.asList("Token filter [phonetic] will not be usable to parse synonyms after v7.0"), assertedWarnings);
     }
 
 }

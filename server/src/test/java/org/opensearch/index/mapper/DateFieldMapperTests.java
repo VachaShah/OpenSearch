@@ -45,11 +45,18 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class DateFieldMapperTests extends MapperTestCase {
+
+    // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
+    // This ensures that no matter in what order the tests run, the warning is asserted once.
+    private static Set<String> assertedWarnings = new HashSet<>();
 
     @Override
     protected void writeFieldValue(XContentBuilder builder) throws IOException {
@@ -84,7 +91,7 @@ public class DateFieldMapperTests extends MapperTestCase {
 
     @Override
     protected void assertParseMaximalWarnings() {
-        assertWarnings("Parameter [boost] on field [field] is deprecated and will be removed in 8.0");
+        assertWarningsOnce(Arrays.asList("Parameter [boost] on field [field] is deprecated and will be removed in 8.0"), assertedWarnings);
     }
 
     public void testDefaults() throws Exception {
@@ -248,7 +255,10 @@ public class DateFieldMapperTests extends MapperTestCase {
     public void testBadNullValue() throws IOException {
         createDocumentMapper(fieldMapping(b -> b.field("type", "date").field("null_value", "foo")));
 
-        assertWarnings("Error parsing [foo] as date in [null_value] on field [field]); [null_value] will be ignored");
+        assertWarningsOnce(
+            Arrays.asList("Error parsing [foo] as date in [null_value] on field [field]); [null_value] will be ignored"),
+            assertedWarnings
+        );
     }
 
     public void testNullConfigValuesFail() {
