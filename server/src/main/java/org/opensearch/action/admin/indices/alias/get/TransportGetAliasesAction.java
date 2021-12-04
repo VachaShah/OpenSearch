@@ -51,7 +51,6 @@ import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.TransportService;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -163,8 +162,8 @@ public class TransportGetAliasesAction extends TransportMasterNodeReadAction<Get
             }
         }
         if (systemIndicesNames.isEmpty() == false) {
-            systemIndicesNames.forEach(systemIndexName -> 
-                deprecationLogger.deprecate(
+            systemIndicesNames.forEach(
+                systemIndexName -> deprecationLogger.deprecate(
                     "open_system_index_access_" + systemIndexName,
                     "this request accesses system indices: [{}], but in a future major version, direct access to system "
                         + "indices will be prevented by default",

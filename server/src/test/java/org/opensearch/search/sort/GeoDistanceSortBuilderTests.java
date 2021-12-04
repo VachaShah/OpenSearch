@@ -414,7 +414,7 @@ public class GeoDistanceSortBuilderTests extends AbstractSortTestCase<GeoDistanc
             expectedWarnings.add("[nested_path] has been deprecated in favour of the [nested] parameter");
         }
         if (expectedWarnings.isEmpty() == false) {
-            assertWarnings(expectedWarnings.toArray(new String[expectedWarnings.size()]));
+            assertWarningsOnce(expectedWarnings);
         }
     }
 

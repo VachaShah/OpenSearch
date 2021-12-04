@@ -365,8 +365,8 @@ public class IndexNameExpressionResolver {
                 .sorted() // reliable order for testing
                 .collect(Collectors.toList());
             if (resolvedSystemIndices.isEmpty() == false) {
-                resolvedSystemIndices.forEach(systemIndexName ->
-                    deprecationLogger.deprecate(
+                resolvedSystemIndices.forEach(
+                    systemIndexName -> deprecationLogger.deprecate(
                         "open_system_index_access_" + systemIndexName,
                         "this request accesses system indices: [{}], but in a future major version, direct access to system "
                             + "indices will be prevented by default",

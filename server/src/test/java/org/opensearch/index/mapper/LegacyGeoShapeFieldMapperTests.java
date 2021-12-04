@@ -298,7 +298,6 @@ public class LegacyGeoShapeFieldMapperTests extends FieldMapperTestCase2<LegacyG
             warnings[i] = "Field parameter [" + fieldNames[i] + "] " + "is deprecated and will be removed in a future version.";
         }
         assertWarningsOnce(Arrays.asList(warnings));
-        ;
     }
 
     public void testLevelPrecisionConfiguration() throws IOException {

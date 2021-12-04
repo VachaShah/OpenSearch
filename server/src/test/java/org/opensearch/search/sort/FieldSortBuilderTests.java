@@ -701,7 +701,7 @@ public class FieldSortBuilderTests extends AbstractSortTestCase<FieldSortBuilder
             expectedWarnings.add("[nested_path] has been deprecated in favor of the [nested] parameter");
         }
         if (expectedWarnings.isEmpty() == false) {
-            assertWarnings(expectedWarnings.toArray(new String[expectedWarnings.size()]));
+            assertWarningsOnce(expectedWarnings);
         }
     }
 
