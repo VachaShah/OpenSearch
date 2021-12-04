@@ -140,7 +140,7 @@ public class SortBuilderTests extends OpenSearchTestCase {
      */
     public void testRandomSortBuilders() throws IOException {
         for (int runs = 0; runs < NUMBER_OF_RUNS; runs++) {
-            Set<String> expectedWarningHeaders = new HashSet<>();
+            List<String> expectedWarningHeaders = new ArrayList<>();
             List<SortBuilder<?>> testBuilders = randomSortBuilderList();
             XContentBuilder xContentBuilder = XContentFactory.jsonBuilder();
             xContentBuilder.startObject();
@@ -198,7 +198,7 @@ public class SortBuilderTests extends OpenSearchTestCase {
                 assertEquals(iterator.next(), parsedBuilder);
             }
             if (expectedWarningHeaders.size() > 0) {
-                assertWarnings(expectedWarningHeaders.toArray(new String[expectedWarningHeaders.size()]));
+                assertWarningsOnce(expectedWarningHeaders);
             }
         }
     }

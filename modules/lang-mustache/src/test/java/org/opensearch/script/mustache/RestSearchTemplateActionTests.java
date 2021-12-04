@@ -55,7 +55,6 @@ public class RestSearchTemplateActionTests extends RestActionTestCase {
 
         dispatchRequest(request);
         assertWarningsOnce(Arrays.asList(RestSearchAction.TYPES_DEPRECATION_MESSAGE));
-        assertedWarnings.add(RestSearchAction.TYPES_DEPRECATION_MESSAGE);
     }
 
     public void testTypeParameter() {

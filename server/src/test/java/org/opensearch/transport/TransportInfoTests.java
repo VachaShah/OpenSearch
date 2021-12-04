@@ -67,16 +67,14 @@ public class TransportInfoTests extends OpenSearchTestCase {
         InetAddress address = InetAddress.getByName("localhost");
         int port = 9200;
         assertPublishAddress(createTransportInfo(address, port, false), NetworkAddress.format(address) + ':' + port);
-        assertWarningsOnce(
-            Arrays.asList(
-                "transport.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
-                    + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
-                    + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting.",
+        assertWarnings(
+            "transport.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
+                + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
+                + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting.",
 
-                "transport.test_profile.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
-                    + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
-                    + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting."
-            )
+            "transport.test_profile.publish_address was printed as [ip:port] instead of [hostname/ip:port]. "
+                + "This format is deprecated and will change to [hostname/ip:port] in a future version. "
+                + "Use -Dopensearch.transport.cname_in_publish_address=true to enforce non-deprecated formatting."
         );
     }
 

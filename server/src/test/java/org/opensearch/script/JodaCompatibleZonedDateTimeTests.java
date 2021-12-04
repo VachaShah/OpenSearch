@@ -55,6 +55,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -100,7 +101,7 @@ public class JodaCompatibleZonedDateTimeTests extends OpenSearchTestCase {
             Loggers.removeAppender(DEPRECATION_LOGGER, appender);
         }
 
-        assertWarnings(message);
+        assertWarningsOnce(Arrays.asList(message));
     }
 
     void assertMethodDeprecation(Runnable assertions, String oldMethod, String newMethod) {
