@@ -87,7 +87,7 @@ public class SystemIndexRestIT extends HttpSmokeTestCase {
         // make sure the system index now exists
         assertBusy(() -> {
             Request searchRequest = new Request("GET", "/" + SystemIndexTestPlugin.SYSTEM_INDEX_NAME + "/_count");
-            searchRequest.setOptions(expectWarnings("this request accesses system indices: [" + SystemIndexTestPlugin.SYSTEM_INDEX_NAME +
+            searchRequest.setOptions(expectWarningsOnce("this request accesses system indices: [" + SystemIndexTestPlugin.SYSTEM_INDEX_NAME +
                 "], but in a future major version, direct access to system indices will be prevented by default"));
 
             // Disallow no indices to cause an exception if the flag above doesn't work
@@ -113,7 +113,7 @@ public class SystemIndexRestIT extends HttpSmokeTestCase {
                 "future major version, direct access to system indices will be prevented by default";
             Request putDocDirectlyRequest = new Request("PUT", "/" + SystemIndexTestPlugin.SYSTEM_INDEX_NAME + "/_doc/43");
             putDocDirectlyRequest.setJsonEntity("{\"some_field\":  \"some_other_value\"}");
-            putDocDirectlyRequest.setOptions(expectWarnings(expectedWarning));
+            putDocDirectlyRequest.setOptions(expectWarningsOnce(expectedWarning));
             Response response = getRestClient().performRequest(putDocDirectlyRequest);
             assertThat(response.getStatusLine().getStatusCode(), equalTo(201));
         }
@@ -126,15 +126,19 @@ public class SystemIndexRestIT extends HttpSmokeTestCase {
         searchRequest.setJsonEntity("{\"query\": {\"match\":  {\"some_field\":  \"some_value\"}}}");
         // Disallow no indices to cause an exception if this resolves to zero indices, so that we're sure it resolved the index
         searchRequest.addParameter("allow_no_indices", "false");
-        searchRequest.setOptions(expectWarnings(expectedWarning));
+        searchRequest.setOptions(expectWarningsOnce(expectedWarning));
 
         Response response = getRestClient().performRequest(searchRequest);
         assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
     }
 
-    private RequestOptions expectWarnings(String expectedWarning) {
+    public static RequestOptions expectWarningsOnce(String expectedWarning) {
         final RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
+        if (assertedWarnings.contains(expectedWarning)) {
+            return builder.build();
+        }
         builder.setWarningsHandler(w -> w.contains(expectedWarning) == false || w.size() != 1);
+        assertedWarnings.add(expectedWarning);
         return builder.build();
     }
 

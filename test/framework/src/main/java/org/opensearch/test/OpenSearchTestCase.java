@@ -205,7 +205,7 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
 
     // This set will contain the warnings already asserted since we are eliminating logging duplicate warnings.
     // This ensures that no matter in what order the tests run, the warning is asserted once.
-    private static Set<String> assertedWarnings = new HashSet<>();
+    protected static Set<String> assertedWarnings = new HashSet<>();
 
     protected static final List<String> JODA_TIMEZONE_IDS;
     protected static final List<String> JAVA_TIMEZONE_IDS;
@@ -499,10 +499,10 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
         List<String> uniqueExpectedWarnings = expectedWarnings.stream()
             .filter(expectedWarning -> !assertedWarnings.contains(expectedWarning))
             .collect(Collectors.toList());
-        assertedWarnings.addAll(uniqueExpectedWarnings);
         if (uniqueExpectedWarnings.isEmpty()) {
             return;
         }
+        assertedWarnings.addAll(uniqueExpectedWarnings);
         assertWarnings(uniqueExpectedWarnings.toArray(new String[0]));
     }
 

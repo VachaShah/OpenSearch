@@ -302,6 +302,18 @@ public abstract class OpenSearchRestTestCase extends OpenSearchTestCase {
     }
 
     /**
+     * Filters out already asserted warnings and calls expectWarnings method.
+     * @param deprecationWarning expected warning
+     */
+    public static RequestOptions expectWarningsOnce(String deprecationWarning) {
+        if (assertedWarnings.contains(deprecationWarning)) {
+            return RequestOptions.DEFAULT;
+        }
+        assertedWarnings.add(deprecationWarning);
+        return expectWarnings(deprecationWarning);
+    }
+
+    /**
      * Creates RequestOptions designed to ignore [types removal] warnings but nothing else
      * @deprecated this method is only required while we deprecate types and can be removed in 8.0
      */

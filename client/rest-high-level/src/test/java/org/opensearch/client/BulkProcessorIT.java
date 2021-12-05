@@ -95,7 +95,7 @@ public class BulkProcessorIT extends OpenSearchRestHighLevelClientTestCase {
         return BulkProcessor.builder(
             (request, bulkListener) -> highLevelClient().bulkAsync(
                 request,
-                expectWarnings(RestBulkAction.TYPES_DEPRECATION_MESSAGE),
+                expectWarningsOnce(RestBulkAction.TYPES_DEPRECATION_MESSAGE),
                 bulkListener
             ),
             listener

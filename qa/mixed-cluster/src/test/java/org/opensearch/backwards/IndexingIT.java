@@ -63,7 +63,7 @@ public class IndexingIT extends OpenSearchRestTestCase {
             final int id = idStart + i;
             Request request = new Request("PUT", index + "/doc/" + id);
             request.setJsonEntity("{\"test\": \"test_" + randomAlphaOfLength(2) + "\"}");
-            request.setOptions(expectWarnings(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
+            request.setOptions(expectWarningsOnce(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
             assertOK(client().performRequest(request));
         }
         return numDocs;
@@ -305,7 +305,7 @@ public class IndexingIT extends OpenSearchRestTestCase {
     private void assertVersion(final String index, final int docId, final String preference, final int expectedVersion) throws IOException {
         Request request = new Request("GET", index + "/doc/" + docId);
         request.addParameter("preference", preference);
-        request.setOptions(expectWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE));
+        request.setOptions(expectWarningsOnce(RestGetAction.TYPES_DEPRECATION_MESSAGE));
 
         final Response response = client().performRequest(request);
         assertOK(response);

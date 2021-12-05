@@ -3111,12 +3111,4 @@ public class IndicesClientDocumentationIT extends OpenSearchRestHighLevelClientT
             assertTrue(latch.await(30L, TimeUnit.SECONDS));
         }
     }
-
-    private RequestOptions expectWarningsOnce(String deprecationWarning) {
-        if (!assertedWarnings.contains(deprecationWarning)) {
-            assertedWarnings.add(deprecationWarning);
-            return expectWarnings(deprecationWarning);
-        }
-        return RequestOptions.DEFAULT;
-    }
 }

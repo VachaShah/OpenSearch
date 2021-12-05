@@ -51,7 +51,7 @@ public class MappingIT extends AbstractRollingTestCase {
                     "{ \"settings\": { \"index.number_of_shards\": 1 }, " +
                         "\"mappings\": {\"_all\": { \"enabled\": false }, \"properties\": { \"field\": { \"type\": \"text\" }}}}"
                 );
-                createTestIndex.setOptions(expectWarnings("[_all] is deprecated in 6.0+ and will be removed in 7.0. As a replacement," +
+                createTestIndex.setOptions(expectWarningsOnce("[_all] is deprecated in 6.0+ and will be removed in 7.0. As a replacement," +
                     " " + "you can use [copy_to] on mapping fields to create your own catch all field."));
                 Response resp = client().performRequest(createTestIndex);
                 assertEquals(200, resp.getStatusLine().getStatusCode());

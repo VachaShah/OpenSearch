@@ -499,7 +499,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
         Request bulkRequest = new Request("POST", "/" + index + "_write/" + type + "/_bulk");
         bulkRequest.setJsonEntity(bulk.toString());
         bulkRequest.addParameter("refresh", "");
-        bulkRequest.setOptions(expectWarnings(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
+        bulkRequest.setOptions(expectWarningsOnce(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
         assertThat(EntityUtils.toString(client().performRequest(bulkRequest).getEntity()), containsString("\"errors\":false"));
 
         if (isRunningAgainstOldCluster()) {
@@ -579,7 +579,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
 
         Request explainRequest = new Request("GET", "/" + index + "/" + type + "/" + id + "/_explain");
         explainRequest.setJsonEntity("{ \"query\": { \"match_all\" : {} }}");
-        explainRequest.setOptions(expectWarnings(RestExplainAction.TYPES_DEPRECATION_MESSAGE));
+        explainRequest.setOptions(expectWarningsOnce(RestExplainAction.TYPES_DEPRECATION_MESSAGE));
         String explanation = toStr(client().performRequest(explainRequest));
         assertFalse("Could not find payload boost in explanation\n" + explanation, explanation.contains("payloadBoost"));
 
@@ -631,13 +631,13 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
         String docId = (String) hit.get("_id");
 
         Request updateRequest = new Request("POST", "/" + index + "/" + typeName + "/" + docId + "/_update");
-        updateRequest.setOptions(expectWarnings(RestUpdateAction.TYPES_DEPRECATION_MESSAGE));
+        updateRequest.setOptions(expectWarningsOnce(RestUpdateAction.TYPES_DEPRECATION_MESSAGE));
         updateRequest.setJsonEntity("{ \"doc\" : { \"foo\": \"bar\"}}");
         client().performRequest(updateRequest);
 
         Request getRequest = new Request("GET", "/" + index + "/" + typeName + "/" + docId);
         if (getOldClusterVersion().before(LegacyESVersion.V_6_7_0)) {
-            getRequest.setOptions(expectWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE));
+            getRequest.setOptions(expectWarningsOnce(RestGetAction.TYPES_DEPRECATION_MESSAGE));
         }
         Map<String, Object> getRsp = entityAsMap(client().performRequest(getRequest));
         Map<?, ?> source = (Map<?, ?>) getRsp.get("_source");
@@ -686,7 +686,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
 
         Request request = new Request("GET", docLocation);
         if (getOldClusterVersion().before(LegacyESVersion.V_6_7_0)) {
-            request.setOptions(expectWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE));
+            request.setOptions(expectWarningsOnce(RestGetAction.TYPES_DEPRECATION_MESSAGE));
         }
         assertThat(toStr(client().performRequest(request)), containsString(doc));
     }
@@ -993,7 +993,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
                 String doc = Strings.toString(JsonXContent.contentBuilder().startObject().field("field", "v1").endObject());
                 Request request = new Request("POST", "/" + index + "/" + type + "/" + i);
                 if (isRunningAgainstAncientCluster() == false) {
-                    request.setOptions(expectWarnings(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
+                    request.setOptions(expectWarningsOnce(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
                 }
                 request.setJsonEntity(doc);
                 client().performRequest(request);
@@ -1173,7 +1173,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
         Request writeToRestoredRequest = new Request("POST", "/restored_" + index + "/" + type + "/_bulk");
         writeToRestoredRequest.addParameter("refresh", "true");
         writeToRestoredRequest.setJsonEntity(bulk.toString());
-        writeToRestoredRequest.setOptions(expectWarnings(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
+        writeToRestoredRequest.setOptions(expectWarningsOnce(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
         assertThat(EntityUtils.toString(client().performRequest(writeToRestoredRequest).getEntity()), containsString("\"errors\":false"));
 
         // And count to make sure the add worked
@@ -1248,7 +1248,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
             logger.debug("Indexing document [{}]", i);
             Request createDocument = new Request("POST", "/" + index + "/" + type + "/" + i);
             if (isRunningAgainstAncientCluster() == false) {
-                createDocument.setOptions(expectWarnings(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
+                createDocument.setOptions(expectWarningsOnce(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
             }
             createDocument.setJsonEntity(Strings.toString(docSupplier.apply(i)));
             client().performRequest(createDocument);
@@ -1284,7 +1284,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
         request.addParameter("op_type", "create");
         request.setJsonEntity(Strings.toString(infoDoc));
         if (isRunningAgainstAncientCluster() == false) {
-            request.setOptions(expectWarnings(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
+            request.setOptions(expectWarningsOnce(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
         }
         client().performRequest(request);
     }
@@ -1293,7 +1293,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
         Request request = new Request("GET", "/info/" + this.type + "/" + index + "_" + type);
         request.addParameter("filter_path", "_source");
         if (getOldClusterVersion().before(LegacyESVersion.V_6_7_0)) {
-            request.setOptions(expectWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE));
+            request.setOptions(expectWarningsOnce(RestGetAction.TYPES_DEPRECATION_MESSAGE));
         }
         String doc = toStr(client().performRequest(request));
         Matcher m = Pattern.compile("\"value\":\"(.+)\"").matcher(doc);
@@ -1483,7 +1483,7 @@ public class FullClusterRestartIT extends AbstractFullClusterRestartTestCase {
             bulk.setJsonEntity("{\"index\": {\"_index\": \"test_index_old\", \"_type\" : \"" + type + "\"}}\n" +
                 "{\"f1\": \"v1\", \"f2\": \"v2\"}\n");
         if (isRunningAgainstAncientCluster() == false) {
-            bulk.setOptions(expectWarnings(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
+            bulk.setOptions(expectWarningsOnce(RestBulkAction.TYPES_DEPRECATION_MESSAGE));
         }
             client().performRequest(bulk);
 

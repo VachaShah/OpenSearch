@@ -66,7 +66,9 @@ public class PingAndInfoIT extends OpenSearchRestHighLevelClientTestCase {
 
     public void testInfo_overrideResponseVersion() throws IOException {
         Request overrideResponseVersionRequest = new Request("PUT", "/_cluster/settings");
-        overrideResponseVersionRequest.setOptions(expectWarnings(TransportMainAction.OVERRIDE_MAIN_RESPONSE_VERSION_DEPRECATION_MESSAGE));
+        overrideResponseVersionRequest.setOptions(
+            expectWarningsOnce(TransportMainAction.OVERRIDE_MAIN_RESPONSE_VERSION_DEPRECATION_MESSAGE)
+        );
         overrideResponseVersionRequest.setJsonEntity("{\"persistent\":{\"compatibility\": {\"override_main_response_version\":true}}}");
         client().performRequest(overrideResponseVersionRequest);
 

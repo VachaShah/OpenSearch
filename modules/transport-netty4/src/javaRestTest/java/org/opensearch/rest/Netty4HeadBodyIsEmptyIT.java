@@ -231,7 +231,7 @@ public class Netty4HeadBodyIsEmptyIT extends OpenSearchRestTestCase {
         for (Map.Entry<String, String> param : params.entrySet()) {
             request.addParameter(param.getKey(), param.getValue());
         }
-        request.setOptions(expectWarnings(expectedWarnings));
+        request.setOptions(expectWarningsOnce(expectedWarnings));
         Response response = client().performRequest(request);
         assertEquals(expectedStatusCode, response.getStatusLine().getStatusCode());
         assertThat(Integer.valueOf(response.getHeader("Content-Length")), matcher);

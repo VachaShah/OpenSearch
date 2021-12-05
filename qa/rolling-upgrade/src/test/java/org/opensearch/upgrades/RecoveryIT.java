@@ -125,7 +125,7 @@ public class RecoveryIT extends AbstractRollingTestCase {
             final int id = idStart + i;
             Request indexDoc = new Request("PUT", index + "/test/" + id);
             indexDoc.setJsonEntity("{\"test\": \"test_" + randomAsciiOfLength(2) + "\"}");
-            indexDoc.setOptions(expectWarnings(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
+            indexDoc.setOptions(expectWarningsOnce(RestIndexAction.TYPES_DEPRECATION_MESSAGE));
             client().performRequest(indexDoc);
         }
         return numDocs;
@@ -653,7 +653,7 @@ public class RecoveryIT extends AbstractRollingTestCase {
             for (int i = 0; i < times; i++) {
                 long value = randomNonNegativeLong();
                 Request update = new Request("POST", index + "/test/" + docId + "/_update");
-                update.setOptions(expectWarnings(RestUpdateAction.TYPES_DEPRECATION_MESSAGE));
+                update.setOptions(expectWarningsOnce(RestUpdateAction.TYPES_DEPRECATION_MESSAGE));
                 update.setJsonEntity("{\"doc\": {\"updated_field\": " + value + "}}");
                 client().performRequest(update);
                 updates.put(docId, value);
@@ -662,7 +662,7 @@ public class RecoveryIT extends AbstractRollingTestCase {
         client().performRequest(new Request("POST", index + "/_refresh"));
         for (int docId : updates.keySet()) {
             Request get = new Request("GET", index + "/test/" + docId);
-            get.setOptions(expectWarnings(RestGetAction.TYPES_DEPRECATION_MESSAGE));
+            get.setOptions(expectWarningsOnce(RestGetAction.TYPES_DEPRECATION_MESSAGE));
             Map<String, Object> doc = entityAsMap(client().performRequest(get));
             assertThat(XContentMapValues.extractValue("_source.updated_field", doc), equalTo(updates.get(docId)));
         }

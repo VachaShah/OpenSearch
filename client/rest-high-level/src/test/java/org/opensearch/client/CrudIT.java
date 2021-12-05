@@ -1447,12 +1447,4 @@ public class CrudIT extends OpenSearchRestHighLevelClientTestCase {
             }
         }
     }
-
-    private RequestOptions expectWarningsOnce(String deprecationWarning) {
-        if (!assertedWarnings.contains(deprecationWarning)) {
-            assertedWarnings.add(deprecationWarning);
-            return expectWarnings(deprecationWarning);
-        }
-        return RequestOptions.DEFAULT;
-    }
 }
