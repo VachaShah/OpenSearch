@@ -40,6 +40,7 @@ import org.opensearch.test.rest.OpenSearchRestTestCase;
 import org.hamcrest.Matcher;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
@@ -231,7 +232,7 @@ public class Netty4HeadBodyIsEmptyIT extends OpenSearchRestTestCase {
         for (Map.Entry<String, String> param : params.entrySet()) {
             request.addParameter(param.getKey(), param.getValue());
         }
-        request.setOptions(expectWarningsOnce(expectedWarnings));
+        request.setOptions(expectWarningsOnce(expectedWarnings[0]));
         Response response = client().performRequest(request);
         assertEquals(expectedStatusCode, response.getStatusLine().getStatusCode());
         assertThat(Integer.valueOf(response.getHeader("Content-Length")), matcher);
