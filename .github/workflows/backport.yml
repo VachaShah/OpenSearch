@@ -17,3 +17,4 @@ jobs:
         uses: VachaShah/backport@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch-name: 'backport/test'
