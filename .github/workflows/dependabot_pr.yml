@@ -9,12 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
       - name: Update Gradle SHAs
         run: |
-          ./gradlew updateSHAs
+          ./gradlew updateSHAs --info
 
       - name: Run spotless
         run: |
