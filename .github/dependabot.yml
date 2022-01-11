@@ -114,11 +114,6 @@ updates:
     package-ecosystem: gradle
     schedule:
       interval: weekly
-  - directory: /client/transport/
-    open-pull-requests-limit: 10
-    package-ecosystem: gradle
-    schedule:
-      interval: weekly
   - directory: /distribution/
     open-pull-requests-limit: 10
     package-ecosystem: gradle
@@ -730,11 +725,6 @@ updates:
     schedule:
       interval: weekly
   - directory: /qa/rolling-upgrade/
-    open-pull-requests-limit: 10
-    package-ecosystem: gradle
-    schedule:
-      interval: weekly
-  - directory: /qa/smoke-test-client/
     open-pull-requests-limit: 10
     package-ecosystem: gradle
     schedule:

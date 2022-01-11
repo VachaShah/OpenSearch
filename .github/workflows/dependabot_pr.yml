@@ -1,0 +1,21 @@
+name: Dependabot PR actions
+on: pull_request_target
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Update Gradle SHAs
+        run: |
+          ./gradlew updateSHAs
+
+      - name: Run spotless
+        run: |
+          ./gradlew spotlessApply
