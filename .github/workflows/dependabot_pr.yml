@@ -14,6 +14,9 @@ jobs:
       - name: Update Gradle SHAs
         run: |
           ./gradlew updateSHAs
+
+      - name: Commit the changes
+        run: |
           echo "Committing the SHA updates"
           git add .
           git commit -m "Updating SHAs"
