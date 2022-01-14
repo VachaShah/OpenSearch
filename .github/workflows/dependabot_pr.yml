@@ -16,13 +16,17 @@ jobs:
           ./gradlew updateSHAs
 
       - name: Commit the changes
-        run: |
-          echo "Committing the SHA updates"
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git add .
-          git commit -m "Updating SHAs"
-          git push --force https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git HEAD:${REMOTE_BRANCH}
+        uses: stefanzweifel/git-auto-commit-action@v4.7.2
+        with:
+          commit_message: Updating SHAs
+          branch: ${{ github.head_ref }}
+#         run: |
+#           echo "Committing the SHA updates"
+#           git config user.name "GitHub Actions Bot"
+#           git config user.email "<>"
+#           git add .
+#           git commit -m "Updating SHAs"
+#           git push --force https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git HEAD:${REMOTE_BRANCH}
 
       - name: Run spotless
         run: |
