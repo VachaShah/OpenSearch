@@ -18,6 +18,8 @@ jobs:
       - name: Commit the changes
         run: |
           echo "Committing the SHA updates"
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
           git add .
           git commit -m "Updating SHAs"
           git push --force https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git HEAD:${REMOTE_BRANCH}
