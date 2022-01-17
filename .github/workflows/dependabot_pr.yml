@@ -7,6 +7,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -16,12 +17,23 @@ jobs:
           ./gradlew updateSHAs
 
       - name: Commit the changes
-        run: |
-          echo "Committing the SHA updates"
-          git add .
-          git commit -m "Updating SHAs"
-          git push --force https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git HEAD:${REMOTE_BRANCH}
+        uses: stefanzweifel/git-auto-commit-action@v4.7.2
+        with:
+          commit_message: Updating SHAs
+          branch: ${{ github.head_ref }}
+          commit_user_name: dependabot[bot]
+          commit_user_email: support@github.com
+          commit_options: '--signoff'
 
       - name: Run spotless
         run: |
           ./gradlew spotlessApply
+
+      - name: Commit the changes
+        uses: stefanzweifel/git-auto-commit-action@v4.7.2
+        with:
+          commit_message: Spotless formatting
+          branch: ${{ github.head_ref }}
+          commit_user_name: dependabot[bot]
+          commit_user_email: support@github.com
+          commit_options: '--signoff'
