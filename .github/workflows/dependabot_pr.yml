@@ -20,6 +20,7 @@ jobs:
         with:
           commit_message: Updating SHAs
           branch: ${{ github.head_ref }}
+          commit_author: ${GITHUB_ACTOR}
 #         run: |
 #           echo "Committing the SHA updates"
 #           git config user.name "GitHub Actions Bot"
