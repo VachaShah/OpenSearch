@@ -20,7 +20,7 @@ jobs:
         with:
           commit_message: Updating SHAs
           branch: ${{ github.head_ref }}
-          commit_author: ${GITHUB_ACTOR}
+          commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           commit_options: '--signoff'
 #         run: |
 #           echo "Committing the SHA updates"
