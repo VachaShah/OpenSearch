@@ -23,7 +23,6 @@ jobs:
           branch: ${{ github.head_ref }}
           commit_user_name: dependabot[bot]
           commit_user_email: support@github.com
-          commit_author: dependabot[bot] <support@github.com>
           commit_options: '--signoff'
 
       - name: Run spotless
@@ -37,5 +36,4 @@ jobs:
           branch: ${{ github.head_ref }}
           commit_user_name: dependabot[bot]
           commit_user_email: support@github.com
-          commit_author: dependabot[bot] <support@github.com>
           commit_options: '--signoff'
