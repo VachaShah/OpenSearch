@@ -1,6 +1,6 @@
 name: Dependabot PR actions
-on: 
-  pull_request_target
+on:
+  pull_request_target:
     types:
       - labeled
 
