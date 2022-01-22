@@ -1,34 +1,34 @@
 name: Dependabot PR actions
-on: 
-  pull_request_target:
-    types:
-      - labeled
+on: pull_request
+permissions:
+  pull-requests: write
+  contents: write
 
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      # - name: Obtain GitHub App Installation Access Token
-      #   id: githubAppAuth
-      #   run: |
-      #     TOKEN="$(npx obtain-github-app-installation-access-token ci ${{ secrets.GH_APP_CREDENTIALS_TOKEN }})"
-      #     echo "::add-mask::$TOKEN"
-      #     echo "::set-output name=token::$TOKEN"
-      # - name: Use the obtained token
-      #   run: |
-      #     curl -X POST -H 'Content-Type: application/json' \
-      #       -d '{"context":"test","state":"success"}' \
-      #       "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA?access_token=$GITHUB_TOKEN"
-      #   env:
-      #     GITHUB_APP_TOKEN: ${{ steps.githubAppAuth.outputs.token }}
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+          # Optional (defaults to ID of the repository's installation).
+          installation_id: 22479998
+          # Optional (defaults to the current repository).
+          # repository: "owner/repo"
+      - name: Use token
+        env:
+          TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          echo "The generated token is masked: ${TOKEN}"
 
       - name: Check out code
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-        # with:
-        #   token: ${{ secrets.GITHUB_APP_TOKEN }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Update Gradle SHAs
         run: |
