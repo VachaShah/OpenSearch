@@ -5,8 +5,9 @@ jobs:
   dependabot:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       pull-requests: write
+      contents: write
+    if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: GitHub App token
         id: github_app_token
@@ -17,18 +18,15 @@ jobs:
           installation_id: 22479998
 
       - name: Check out code
-        if: ${{ github.actor == 'dependabot[bot]' }}
         uses: actions/checkout@v2
         with:
           token: ${{ steps.github_app_token.outputs.token }}
 
       - name: Update Gradle SHAs
-        if: ${{ github.actor == 'dependabot[bot]' }}
         run: |
           ./gradlew updateSHAs
 
       - name: Commit the changes
-        if: ${{ github.actor == 'dependabot[bot]' }}
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
           commit_message: Updating SHAs
@@ -38,12 +36,10 @@ jobs:
           commit_options: '--signoff'
 
       - name: Run spotless
-        if: ${{ github.actor == 'dependabot[bot]' }}
         run: |
           ./gradlew spotlessApply
 
       - name: Commit the changes
-        if: ${{ github.actor == 'dependabot[bot]' }}
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
           commit_message: Spotless formatting
