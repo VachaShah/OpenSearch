@@ -31,6 +31,8 @@
 
 package org.opensearch.action.support;
 
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
 import org.opensearch.OpenSearchParseException;
 import org.opensearch.core.ParseField;
 import org.opensearch.core.common.io.stream.StreamInput;
@@ -278,9 +280,23 @@ public class IndicesOptions implements ToXContentFragment {
         out.writeEnumSet(expandWildcards);
     }
 
+    public void writeIndicesOptionsProtobuf(CodedOutputStream out) throws IOException {
+        ProtobufStreamOutput protobufStreamOutput = new ProtobufStreamOutput();
+        EnumSet<Option> options = this.options;
+        protobufStreamOutput.writeEnumSet(options, out);
+        protobufStreamOutput.writeEnumSet(expandWildcards, out);
+    }
+
     public static IndicesOptions readIndicesOptions(StreamInput in) throws IOException {
         EnumSet<Option> options = in.readEnumSet(Option.class);
         EnumSet<WildcardStates> states = in.readEnumSet(WildcardStates.class);
+        return new IndicesOptions(options, states);
+    }
+
+    public static IndicesOptions readIndicesOptionsProtobuf(CodedInputStream in) throws IOException {
+        ProtobufStreamInput protobufStreamInput = new ProtobufStreamInput();
+        EnumSet<Option> options = protobufStreamInput.readEnumSet(Option.class, in);
+        EnumSet<WildcardStates> states = protobufStreamInput.readEnumSet(WildcardStates.class, in);
         return new IndicesOptions(options, states);
     }
 
