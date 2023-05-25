@@ -533,6 +533,14 @@ public enum RestStatus {
         out.writeString(status.name());
     }
 
+    public static RestStatus readFromProtobuf(CodedInputStream in) throws IOException {
+        return RestStatus.valueOf(in.readString());
+    }
+
+    public static void writeToProtobuf(CodedOutputStream out, RestStatus status) throws IOException {
+        out.writeStringNoTag(status.name());
+    }
+
     public static RestStatus status(int successfulShards, int totalShards, ShardOperationFailedException... failures) {
         if (failures.length == 0) {
             if (successfulShards == 0 && totalShards > 0) {
