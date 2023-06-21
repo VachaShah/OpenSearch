@@ -96,6 +96,8 @@ import org.opensearch.cluster.ClusterState;
 import org.opensearch.cluster.ClusterStateObserver;
 import org.opensearch.cluster.InternalClusterInfoService;
 import org.opensearch.cluster.NodeConnectionsService;
+import org.opensearch.cluster.ProtobufClusterState;
+import org.opensearch.cluster.ProtobufClusterStateObserver;
 import org.opensearch.cluster.action.index.MappingUpdatedAction;
 import org.opensearch.cluster.metadata.AliasValidator;
 import org.opensearch.cluster.metadata.IndexTemplateMetadata;
@@ -123,6 +125,7 @@ import org.opensearch.core.common.io.stream.NamedWriteableRegistry;
 import org.opensearch.common.logging.DeprecationLogger;
 import org.opensearch.common.logging.HeaderWarning;
 import org.opensearch.common.logging.NodeAndClusterIdStateListener;
+import org.opensearch.common.logging.ProtobufNodeAndClusterIdStateListener;
 import org.opensearch.common.network.NetworkAddress;
 import org.opensearch.common.network.NetworkModule;
 import org.opensearch.common.network.NetworkService;
@@ -217,6 +220,7 @@ import org.opensearch.snapshots.RestoreService;
 import org.opensearch.snapshots.SnapshotShardsService;
 import org.opensearch.snapshots.SnapshotsInfoService;
 import org.opensearch.snapshots.SnapshotsService;
+import org.opensearch.tasks.ProtobufTaskCancellationService;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskCancellationService;
 import org.opensearch.tasks.TaskResultsService;
@@ -1274,8 +1278,13 @@ public class Node implements Closeable {
         transportService.getTaskManager().setTaskResultsService(injector.getInstance(TaskResultsService.class));
         transportService.getTaskManager().setTaskCancellationService(new TaskCancellationService(transportService));
 
+        ProtobufTransportService protobufTransportService = injector.getInstance(ProtobufTransportService.class);
+        protobufTransportService.getTaskManager().setTaskResultsService(injector.getInstance(TaskResultsService.class));
+        protobufTransportService.getTaskManager().setTaskCancellationService(new ProtobufTaskCancellationService(protobufTransportService));
+
         TaskResourceTrackingService taskResourceTrackingService = injector.getInstance(TaskResourceTrackingService.class);
         transportService.getTaskManager().setTaskResourceTrackingService(taskResourceTrackingService);
+        protobufTransportService.getTaskManager().setTaskResourceTrackingService(taskResourceTrackingService);
         runnableTaskListener.set(taskResourceTrackingService);
 
         transportService.start();
@@ -1331,11 +1340,14 @@ public class Node implements Closeable {
         discovery.startInitialJoin();
         final TimeValue initialStateTimeout = DiscoverySettings.INITIAL_STATE_TIMEOUT_SETTING.get(settings());
         configureNodeAndClusterIdStateListener(clusterService);
+        configureProtobufNodeAndClusterIdStateListener(clusterService);
 
         if (initialStateTimeout.millis() > 0) {
             final ThreadPool thread = injector.getInstance(ThreadPool.class);
             ClusterState clusterState = clusterService.state();
+            ProtobufClusterState protobufClusterState = clusterService.protobufState();
             ClusterStateObserver observer = new ClusterStateObserver(clusterState, clusterService, null, logger, thread.getThreadContext());
+            ProtobufClusterStateObserver protobufObserver = new ProtobufClusterStateObserver(protobufClusterState, clusterService, null, logger, thread.getThreadContext());
 
             if (clusterState.nodes().getClusterManagerNodeId() == null) {
                 logger.debug("waiting to join the cluster. timeout [{}]", initialStateTimeout);
@@ -1343,6 +1355,33 @@ public class Node implements Closeable {
                 observer.waitForNextChange(new ClusterStateObserver.Listener() {
                     @Override
                     public void onNewClusterState(ClusterState state) {
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onClusterServiceClose() {
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onTimeout(TimeValue timeout) {
+                        logger.warn("timed out while waiting for initial discovery state - timeout: {}", initialStateTimeout);
+                        latch.countDown();
+                    }
+                }, state -> state.nodes().getClusterManagerNodeId() != null, initialStateTimeout);
+
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    throw new OpenSearchTimeoutException("Interrupted while waiting for initial discovery state");
+                }
+            }
+            if (protobufClusterState.nodes().getClusterManagerNodeId() == null) {
+                logger.debug("waiting to join the cluster. timeout [{}]", initialStateTimeout);
+                final CountDownLatch latch = new CountDownLatch(1);
+                protobufObserver.waitForNextChange(new ProtobufClusterStateObserver.Listener() {
+                    @Override
+                    public void onNewClusterState(ProtobufClusterState state) {
                         latch.countDown();
                     }
 
@@ -1384,6 +1423,13 @@ public class Node implements Closeable {
 
     protected void configureNodeAndClusterIdStateListener(ClusterService clusterService) {
         NodeAndClusterIdStateListener.getAndSetNodeIdAndClusterId(
+            clusterService,
+            injector.getInstance(ThreadPool.class).getThreadContext()
+        );
+    }
+
+    protected void configureProtobufNodeAndClusterIdStateListener(ClusterService clusterService) {
+        ProtobufNodeAndClusterIdStateListener.getAndSetNodeIdAndClusterId(
             clusterService,
             injector.getInstance(ThreadPool.class).getThreadContext()
         );
