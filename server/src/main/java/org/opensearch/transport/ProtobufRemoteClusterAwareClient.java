@@ -15,7 +15,7 @@ import org.opensearch.action.ProtobufActionRequest;
 import org.opensearch.action.ProtobufActionResponse;
 import org.opensearch.client.ProtobufClient;
 import org.opensearch.client.support.ProtobufAbstractClient;
-import org.opensearch.cluster.node.ProtobufDiscoveryNode;
+import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.threadpool.ProtobufThreadPool;
 
@@ -30,12 +30,7 @@ final class ProtobufRemoteClusterAwareClient extends ProtobufAbstractClient {
     private final String clusterAlias;
     private final ProtobufRemoteClusterService remoteClusterService;
 
-    ProtobufRemoteClusterAwareClient(
-        Settings settings,
-        ProtobufThreadPool threadPool,
-        ProtobufTransportService service,
-        String clusterAlias
-    ) {
+    ProtobufRemoteClusterAwareClient(Settings settings, ThreadPool threadPool, ProtobufTransportService service, String clusterAlias) {
         super(settings, threadPool);
         this.service = service;
         this.clusterAlias = clusterAlias;
@@ -49,10 +44,10 @@ final class ProtobufRemoteClusterAwareClient extends ProtobufAbstractClient {
         ActionListener<Response> listener
     ) {
         remoteClusterService.ensureConnected(clusterAlias, ActionListener.wrap(v -> {
-            ProtobufTransport.Connection connection;
-            if (request instanceof ProtobufRemoteClusterAwareRequest) {
-                ProtobufDiscoveryNode preferredTargetNode = ((ProtobufRemoteClusterAwareRequest) request).getPreferredTargetNode();
-                connection = remoteClusterService.getConnection(preferredTargetNode, clusterAlias);
+            Transport.ProtobufConnection connection;
+            if (request instanceof RemoteClusterAwareRequest) {
+                DiscoveryNode preferredTargetNode = ((RemoteClusterAwareRequest) request).getPreferredTargetNode();
+                connection = remoteClusterService.getConnectionProtobuf(preferredTargetNode, clusterAlias);
             } else {
                 connection = remoteClusterService.getConnection(clusterAlias);
             }

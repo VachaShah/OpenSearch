@@ -534,6 +534,12 @@ public class ActionModule extends AbstractModule {
         this.clusterSettings = clusterSettings;
         this.settingsFilter = settingsFilter;
         this.actionPlugins = actionPlugins;
+        this.protobufIndexNameExpressionResolver = null;
+        this.protobufActionPlugins = new ArrayList<>();
+        ;
+        this.protobufActions = new HashMap<String, ProtobufActionPlugin.ActionHandler<?, ?>>();
+        this.protobufActionFilters = setupProtobufActionFilters(this.protobufActionPlugins);
+        ;
         this.threadPool = threadPool;
         this.extensionsManager = extensionsManager;
         actions = setupActions(actionPlugins);
@@ -563,7 +569,84 @@ public class ActionModule extends AbstractModule {
             actionPlugins.stream().flatMap(p -> p.indicesAliasesRequestValidators().stream()).collect(Collectors.toList())
         );
 
-        restController = new RestController(headers, restWrapper, nodeClient, circuitBreakerService, usageService, identityService);
+        restController = new RestController(headers, restWrapper, nodeClient, circuitBreakerService, usageService);
+    }
+
+    public ActionModule(
+        Settings settings,
+        IndexNameExpressionResolver indexNameExpressionResolver,
+        ProtobufIndexNameExpressionResolver protobufIndexNameExpressionResolver,
+        IndexScopedSettings indexScopedSettings,
+        ClusterSettings clusterSettings,
+        SettingsFilter settingsFilter,
+        ThreadPool threadPool,
+        List<ActionPlugin> actionPlugins,
+        NodeClient nodeClient,
+        List<ProtobufActionPlugin> protobufActionPlugins,
+        ProtobufNodeClient protobufNodeClient,
+        CircuitBreakerService circuitBreakerService,
+        UsageService usageService,
+        SystemIndices systemIndices
+    ) {
+        this.settings = settings;
+        this.indexNameExpressionResolver = indexNameExpressionResolver;
+        this.protobufIndexNameExpressionResolver = protobufIndexNameExpressionResolver;
+        this.indexScopedSettings = indexScopedSettings;
+        this.clusterSettings = clusterSettings;
+        this.settingsFilter = settingsFilter;
+        this.protobufActionPlugins = protobufActionPlugins;
+        this.threadPool = threadPool;
+        this.actionPlugins = actionPlugins;
+        actions = setupActions(actionPlugins);
+        actionFilters = setupActionFilters(actionPlugins);
+        protobufActions = setupProtobufActions(protobufActionPlugins);
+        protobufActionFilters = setupProtobufActionFilters(protobufActionPlugins);
+        dynamicActionRegistry = new DynamicActionRegistry();
+        protobufDynamicActionRegistry = new ProtobufDynamicActionRegistry();
+        autoCreateIndex = new AutoCreateIndex(settings, clusterSettings, indexNameExpressionResolver, systemIndices);
+        destructiveOperations = new DestructiveOperations(settings, clusterSettings);
+        Set<RestHeaderDefinition> headers = Stream.concat(
+            actionPlugins.stream().flatMap(p -> p.getRestHeaders().stream()),
+            Stream.of(new RestHeaderDefinition(Task.X_OPAQUE_ID, false))
+        ).collect(Collectors.toSet());
+        UnaryOperator<RestHandler> restWrapper = null;
+        for (ActionPlugin plugin : actionPlugins) {
+            UnaryOperator<RestHandler> newRestWrapper = plugin.getRestHandlerWrapper(threadPool.getThreadContext());
+            if (newRestWrapper != null) {
+                logger.debug("Using REST wrapper from plugin " + plugin.getClass().getName());
+                if (restWrapper != null) {
+                    throw new IllegalArgumentException("Cannot have more than one plugin implementing a REST wrapper");
+                }
+                restWrapper = newRestWrapper;
+            }
+        }
+        UnaryOperator<ProtobufRestHandler> protobufRestWrapper = null;
+        for (ProtobufActionPlugin plugin : protobufActionPlugins) {
+            UnaryOperator<ProtobufRestHandler> newRestWrapper = plugin.getRestHandlerWrapper(threadPool.getThreadContext());
+            if (newRestWrapper != null) {
+                logger.debug("Using REST wrapper from plugin " + plugin.getClass().getName());
+                if (protobufRestWrapper != null) {
+                    throw new IllegalArgumentException("Cannot have more than one plugin implementing a REST wrapper");
+                }
+                protobufRestWrapper = newRestWrapper;
+            }
+        }
+        mappingRequestValidators = new RequestValidators<>(
+            actionPlugins.stream().flatMap(p -> p.mappingRequestValidators().stream()).collect(Collectors.toList())
+        );
+        indicesAliasesRequestRequestValidators = new RequestValidators<>(
+            actionPlugins.stream().flatMap(p -> p.indicesAliasesRequestValidators().stream()).collect(Collectors.toList())
+        );
+
+        restController = new RestController(
+            headers,
+            restWrapper,
+            nodeClient,
+            protobufRestWrapper,
+            protobufNodeClient,
+            circuitBreakerService,
+            usageService
+        );
     }
 
     public Map<String, ActionHandler<?, ?>> getActions() {
@@ -980,6 +1063,34 @@ public class ActionModule extends AbstractModule {
         }
     }
 
+    public void initProtobufRestHandlers() {
+        List<ProtobufAbstractCatAction> catActions = new ArrayList<>();
+        Consumer<ProtobufRestHandler> registerHandler = handler -> {
+            if (handler instanceof ProtobufAbstractCatAction) {
+                catActions.add((ProtobufAbstractCatAction) handler);
+            }
+            restController.registerProtobufHandler(handler);
+        };
+
+        // CAT API
+        registerHandler.accept(new ProtobufRestNodesAction());
+
+        // for (ActionPlugin plugin : actionPlugins) {
+        // for (ProtobufActionPlugin handler : plugin.getRestHandlers(
+        // settings,
+        // restController,
+        // clusterSettings,
+        // indexScopedSettings,
+        // settingsFilter,
+        // indexNameExpressionResolver,
+        // nodesInCluster
+        // )) {
+        // registerHandler.accept(handler);
+        // }
+        // }
+        registerHandler.accept(new ProtobufRestCatAction(catActions));
+    }
+
     @Override
     protected void configure() {
         bind(ActionFilters.class).toInstance(actionFilters);
@@ -1011,6 +1122,26 @@ public class ActionModule extends AbstractModule {
 
         // register dynamic ActionType -> transportAction Map used by NodeClient
         bind(DynamicActionRegistry.class).toInstance(dynamicActionRegistry);
+
+        // register ActionType -> transportAction Map used by NodeClient
+        @SuppressWarnings("rawtypes")
+        MapBinder<ProtobufActionType, ProtobufTransportAction> protobufTransportActionsBinder = MapBinder.newMapBinder(
+            binder(),
+            ProtobufActionType.class,
+            ProtobufTransportAction.class
+        );
+        for (ProtobufActionPlugin.ActionHandler<?, ?> action : protobufActions.values()) {
+            // bind the action as eager singleton, so the map binder one will reuse it
+            bind(action.getTransportAction()).asEagerSingleton();
+            protobufTransportActionsBinder.addBinding(action.getAction()).to(action.getTransportAction()).asEagerSingleton();
+            for (Class<?> supportAction : action.getSupportTransportActions()) {
+                bind(supportAction).asEagerSingleton();
+            }
+        }
+
+        // register dynamic ActionType -> transportAction Map used by NodeClient
+        bind(ProtobufDynamicActionRegistry.class).toInstance(protobufDynamicActionRegistry);
+
     }
 
     public ActionFilters getActionFilters() {

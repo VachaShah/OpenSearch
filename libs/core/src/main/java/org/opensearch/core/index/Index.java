@@ -42,6 +42,9 @@ import org.opensearch.core.xcontent.ToXContentObject;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.core.xcontent.XContentParser;
 
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -50,7 +53,7 @@ import java.util.Objects;
  *
  * @opensearch.internal
  */
-public class Index implements Writeable, ToXContentObject {
+public class Index implements Writeable, ToXContentObject, ProtobufWriteable {
 
     public static final Index[] EMPTY_ARRAY = new Index[0];
     private static final String INDEX_UUID_KEY = "index_uuid";
@@ -73,6 +76,14 @@ public class Index implements Writeable, ToXContentObject {
      * Read from a stream.
      */
     public Index(StreamInput in) throws IOException {
+        this.name = in.readString();
+        this.uuid = in.readString();
+    }
+
+    /**
+     * Read from a stream.
+     */
+    public Index(CodedInputStream in) throws IOException {
         this.name = in.readString();
         this.uuid = in.readString();
     }
@@ -120,6 +131,12 @@ public class Index implements Writeable, ToXContentObject {
     public void writeTo(final StreamOutput out) throws IOException {
         out.writeString(name);
         out.writeString(uuid);
+    }
+
+    @Override
+    public void writeTo(final CodedOutputStream out) throws IOException {
+        out.writeStringNoTag(name);
+        out.writeStringNoTag(uuid);
     }
 
     @Override

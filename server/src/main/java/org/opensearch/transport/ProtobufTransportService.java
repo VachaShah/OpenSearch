@@ -17,8 +17,8 @@ import org.opensearch.Version;
 import org.opensearch.action.ActionListener;
 import org.opensearch.action.ProtobufActionListenerResponseHandler;
 import org.opensearch.action.support.PlainActionFuture;
-import org.opensearch.cluster.ProtobufClusterName;
-import org.opensearch.cluster.node.ProtobufDiscoveryNode;
+import org.opensearch.cluster.ClusterName;
+import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.common.Nullable;
 import org.opensearch.common.Strings;
 import org.opensearch.common.component.AbstractLifecycleComponent;
@@ -31,7 +31,8 @@ import org.opensearch.common.regex.Regex;
 import org.opensearch.common.settings.ClusterSettings;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.transport.ProtobufBoundTransportAddress;
-import org.opensearch.common.transport.ProtobufTransportAddress;
+import org.opensearch.common.transport.ProtobufBoundTransportAddress;
+import org.opensearch.common.transport.TransportAddress;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.util.concurrent.AbstractRunnable;
 import org.opensearch.core.concurrency.OpenSearchRejectedExecutionException;
@@ -81,11 +82,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     private final DelegatingTransportMessageListener messageListener = new DelegatingTransportMessageListener();
     protected final ProtobufTransport transport;
     protected final ProtobufConnectionManager connectionManager;
-    protected final ProtobufThreadPool threadPool;
-    protected final ProtobufClusterName clusterName;
-    protected final ProtobufTaskManager taskManager;
+    protected final ThreadPool threadPool;
+    protected final ClusterName clusterName;
+    protected final TaskManager taskManager;
     private final ProtobufTransportInterceptor.AsyncSender asyncSender;
-    private final Function<ProtobufBoundTransportAddress, ProtobufDiscoveryNode> localNodeFactory;
+    private final Function<ProtobufBoundTransportAddress, DiscoveryNode> localNodeFactory;
     private final boolean remoteClusterClient;
     private final ProtobufTransport.ResponseHandlers responseHandlers;
     private final ProtobufTransportInterceptor interceptor;
@@ -114,10 +115,10 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     private final ProtobufRemoteClusterService remoteClusterService;
 
     /** if set will call requests sent to this id to shortcut and executed locally */
-    volatile ProtobufDiscoveryNode localNode = null;
-    private final ProtobufTransport.Connection localNodeConnection = new ProtobufTransport.Connection() {
+    volatile DiscoveryNode localNode = null;
+    private final Transport.ProtobufConnection localNodeConnection = new Transport.ProtobufConnection() {
         @Override
-        public ProtobufDiscoveryNode getNode() {
+        public DiscoveryNode getNode() {
             return localNode;
         }
 
@@ -150,7 +151,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         ProtobufTransport transport,
         ProtobufThreadPool threadPool,
         ProtobufTransportInterceptor transportInterceptor,
-        Function<ProtobufBoundTransportAddress, ProtobufDiscoveryNode> localNodeFactory,
+        Function<ProtobufBoundTransportAddress, DiscoveryNode> localNodeFactory,
         @Nullable ClusterSettings clusterSettings,
         Set<String> taskHeaders
     ) {
@@ -171,7 +172,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         ProtobufTransport transport,
         ProtobufThreadPool threadPool,
         ProtobufTransportInterceptor transportInterceptor,
-        Function<ProtobufBoundTransportAddress, ProtobufDiscoveryNode> localNodeFactory,
+        Function<ProtobufBoundTransportAddress, DiscoveryNode> localNodeFactory,
         @Nullable ClusterSettings clusterSettings,
         Set<String> taskHeaders,
         ProtobufConnectionManager connectionManager
@@ -181,16 +182,16 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         this.threadPool = threadPool;
         this.localNodeFactory = localNodeFactory;
         this.connectionManager = connectionManager;
-        this.clusterName = ProtobufClusterName.CLUSTER_NAME_SETTING.get(settings);
+        this.clusterName = ClusterName.CLUSTER_NAME_SETTING.get(settings);
         setTracerLogInclude(TransportSettings.TRACE_LOG_INCLUDE_SETTING.get(settings));
         setTracerLogExclude(TransportSettings.TRACE_LOG_EXCLUDE_SETTING.get(settings));
         tracerLog = Loggers.getLogger(logger, ".tracer");
         taskManager = createTaskManager(settings, clusterSettings, threadPool, taskHeaders);
         this.interceptor = transportInterceptor;
         this.asyncSender = interceptor.interceptSender(this::sendRequestInternal);
-        this.remoteClusterClient = ProtobufDiscoveryNode.isRemoteClusterClient(settings);
-        remoteClusterService = new ProtobufRemoteClusterService(settings, this);
-        responseHandlers = transport.getResponseHandlers();
+        this.remoteClusterClient = DiscoveryNode.isRemoteClusterClient(settings);
+        remoteClusterService = new RemoteClusterService(settings, this);
+        responseHandlers = transport.getProtobufResponseHandlers();
         if (clusterSettings != null) {
             clusterSettings.addSettingsUpdateConsumer(TransportSettings.TRACE_LOG_INCLUDE_SETTING, this::setTracerLogInclude);
             clusterSettings.addSettingsUpdateConsumer(TransportSettings.TRACE_LOG_EXCLUDE_SETTING, this::setTracerLogExclude);
@@ -213,7 +214,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         return remoteClusterService;
     }
 
-    public ProtobufDiscoveryNode getLocalNode() {
+    public DiscoveryNode getLocalNode() {
         return localNode;
     }
 
@@ -262,12 +263,17 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
                 logger.info("profile [{}]: {}", entry.getKey(), entry.getValue());
             }
         }
-        localNode = localNodeFactory.apply(transport.boundAddress());
+
+        localNode = localNodeFactory.apply(transport.boundProtobufAddress());
 
         if (remoteClusterClient) {
             // here we start to connect to the remote clusters
             remoteClusterService.initializeRemoteClusters();
         }
+    }
+
+    public void setLocalNode(DiscoveryNode localNode) {
+        this.localNode = localNode;
     }
 
     @Override
@@ -362,7 +368,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     /**
      * Returns <code>true</code> iff the given node is already connected.
     */
-    public boolean nodeConnected(ProtobufDiscoveryNode node) {
+    public boolean nodeConnected(DiscoveryNode node) {
         return isLocalNode(node) || connectionManager.nodeConnected(node);
     }
 
@@ -371,12 +377,12 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     *
     * @param node the node to connect to
     */
-    public void connectToNode(ProtobufDiscoveryNode node) throws ProtobufConnectTransportException {
+    public void connectToNode(DiscoveryNode node) throws ProtobufConnectTransportException {
         connectToNode(node, (ProtobufConnectionProfile) null);
     }
 
     // We are skipping node validation for extensibility as extensionNode and opensearchNode(LocalNode) will have different ephemeral id's
-    public void connectToExtensionNode(final ProtobufDiscoveryNode node) {
+    public void connectToExtensionNode(final DiscoveryNode node) {
         PlainActionFuture.get(fut -> connectToExtensionNode(node, (ProtobufConnectionProfile) null, ActionListener.map(fut, x -> null)));
     }
 
@@ -386,11 +392,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @param node the node to connect to
     * @param connectionProfile the connection profile to use when connecting to this node
     */
-    public void connectToNode(final ProtobufDiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
+    public void connectToNode(final DiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
         PlainActionFuture.get(fut -> connectToNode(node, connectionProfile, ActionListener.map(fut, x -> null)));
     }
 
-    public void connectToExtensionNode(final ProtobufDiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
+    public void connectToExtensionNode(final DiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
         PlainActionFuture.get(fut -> connectToExtensionNode(node, connectionProfile, ActionListener.map(fut, x -> null)));
     }
 
@@ -401,11 +407,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @param node the node to connect to
     * @param listener the action listener to notify
     */
-    public void connectToNode(ProtobufDiscoveryNode node, ActionListener<Void> listener) throws ProtobufConnectTransportException {
+    public void connectToNode(DiscoveryNode node, ActionListener<Void> listener) throws ProtobufConnectTransportException {
         connectToNode(node, null, listener);
     }
 
-    public void connectToExtensionNode(ProtobufDiscoveryNode node, ActionListener<Void> listener) throws ProtobufConnectTransportException {
+    public void connectToExtensionNode(DiscoveryNode node, ActionListener<Void> listener) throws ProtobufConnectTransportException {
         connectToExtensionNode(node, null, listener);
     }
 
@@ -417,11 +423,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @param connectionProfile the connection profile to use when connecting to this node
     * @param listener the action listener to notify
     */
-    public void connectToNode(
-        final ProtobufDiscoveryNode node,
-        ProtobufConnectionProfile connectionProfile,
-        ActionListener<Void> listener
-    ) {
+    public void connectToNode(final DiscoveryNode node, ProtobufConnectionProfile connectionProfile, ActionListener<Void> listener) {
         if (isLocalNode(node)) {
             listener.onResponse(null);
             return;
@@ -430,7 +432,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public void connectToExtensionNode(
-        final ProtobufDiscoveryNode node,
+        final DiscoveryNode node,
         ProtobufConnectionProfile connectionProfile,
         ActionListener<Void> listener
     ) {
@@ -441,11 +443,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         connectionManager.connectToNode(node, connectionProfile, extensionConnectionValidator(node), listener);
     }
 
-    public ProtobufConnectionManager.ConnectionValidator connectionValidator(ProtobufDiscoveryNode node) {
+    public ProtobufConnectionManager.ConnectionValidator connectionValidator(DiscoveryNode node) {
         return (newConnection, actualProfile, listener) -> {
             // We don't validate cluster names to allow for CCS connections.
             handshake(newConnection, actualProfile.getHandshakeTimeout().millis(), cn -> true, ActionListener.map(listener, resp -> {
-                final ProtobufDiscoveryNode remote = resp.discoveryNode;
+                final DiscoveryNode remote = resp.discoveryNode;
 
                 if (node.equals(remote) == false) {
                     throw new ProtobufConnectTransportException(node, "handshake failed. unexpected remote node " + remote);
@@ -456,11 +458,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         };
     }
 
-    public ProtobufConnectionManager.ConnectionValidator extensionConnectionValidator(ProtobufDiscoveryNode node) {
+    public ProtobufConnectionManager.ConnectionValidator extensionConnectionValidator(DiscoveryNode node) {
         return (newConnection, actualProfile, listener) -> {
             // We don't validate cluster names to allow for CCS connections.
             handshake(newConnection, actualProfile.getHandshakeTimeout().millis(), cn -> true, ActionListener.map(listener, resp -> {
-                final ProtobufDiscoveryNode remote = resp.discoveryNode;
+                final DiscoveryNode remote = resp.discoveryNode;
                 logger.info("Connection validation was skipped");
                 return null;
             }));
@@ -474,7 +476,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @param node the node to connect to
     * @param connectionProfile the connection profile to use
     */
-    public ProtobufTransport.Connection openConnection(final ProtobufDiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
+    public Transport.ProtobufConnection openConnection(final DiscoveryNode node, ProtobufConnectionProfile connectionProfile) {
         return PlainActionFuture.get(fut -> openConnection(node, connectionProfile, fut));
     }
 
@@ -487,7 +489,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @param listener the action listener to notify
     */
     public void openConnection(
-        final ProtobufDiscoveryNode node,
+        final DiscoveryNode node,
         ProtobufConnectionProfile connectionProfile,
         ActionListener<ProtobufTransport.Connection> listener
     ) {
@@ -514,7 +516,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     public void handshake(
         final ProtobufTransport.Connection connection,
         final long handshakeTimeout,
-        final ActionListener<ProtobufDiscoveryNode> listener
+        final ActionListener<DiscoveryNode> listener
     ) {
         handshake(
             connection,
@@ -540,10 +542,10 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     public void handshake(
         final ProtobufTransport.Connection connection,
         final long handshakeTimeout,
-        Predicate<ProtobufClusterName> clusterNamePredicate,
+        Predicate<ClusterName> clusterNamePredicate,
         final ActionListener<HandshakeResponse> listener
     ) {
-        final ProtobufDiscoveryNode node = connection.getNode();
+        final DiscoveryNode node = connection.getNode();
         sendRequest(
             connection,
             HANDSHAKE_ACTION_NAME,
@@ -615,11 +617,11 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @opensearch.internal
     */
     public static class HandshakeResponse extends ProtobufTransportResponse {
-        private final ProtobufDiscoveryNode discoveryNode;
-        private final ProtobufClusterName clusterName;
+        private final DiscoveryNode discoveryNode;
+        private final ClusterName clusterName;
         private final Version version;
 
-        public HandshakeResponse(ProtobufDiscoveryNode discoveryNode, ProtobufClusterName clusterName, Version version) {
+        public HandshakeResponse(DiscoveryNode discoveryNode, ClusterName clusterName, Version version) {
             this.discoveryNode = discoveryNode;
             this.version = version;
             this.clusterName = clusterName;
@@ -628,8 +630,8 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         public HandshakeResponse(CodedInputStream in) throws IOException {
             super(in);
             ProtobufStreamInput protobufStreamInput = new ProtobufStreamInput(in);
-            discoveryNode = protobufStreamInput.readOptionalWriteable(ProtobufDiscoveryNode::new);
-            clusterName = new ProtobufClusterName(in);
+            discoveryNode = protobufStreamInput.readOptionalWriteable(DiscoveryNode::new);
+            clusterName = new ClusterName(in);
             version = Version.readVersionProtobuf(in);
         }
 
@@ -641,16 +643,16 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
             out.writeInt32NoTag(version.id);
         }
 
-        public ProtobufDiscoveryNode getDiscoveryNode() {
+        public DiscoveryNode getDiscoveryNode() {
             return discoveryNode;
         }
 
-        public ProtobufClusterName getClusterName() {
+        public ClusterName getClusterName() {
             return clusterName;
         }
     }
 
-    public void disconnectFromNode(ProtobufDiscoveryNode node) {
+    public void disconnectFromNode(DiscoveryNode node) {
         if (isLocalNode(node)) {
             return;
         }
@@ -674,7 +676,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public <T extends ProtobufTransportResponse> TransportFuture<T> submitRequest(
-        ProtobufDiscoveryNode node,
+        DiscoveryNode node,
         String action,
         ProtobufTransportRequest request,
         ProtobufTransportResponseHandler<T> handler
@@ -683,7 +685,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public <T extends ProtobufTransportResponse> TransportFuture<T> submitRequest(
-        ProtobufDiscoveryNode node,
+        DiscoveryNode node,
         String action,
         ProtobufTransportRequest request,
         TransportRequestOptions options,
@@ -701,7 +703,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public <T extends ProtobufTransportResponse> void sendRequest(
-        final ProtobufDiscoveryNode node,
+        final DiscoveryNode node,
         final String action,
         final ProtobufTransportRequest request,
         final ProtobufTransportResponseHandler<T> handler
@@ -718,7 +720,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public final <T extends ProtobufTransportResponse> void sendRequest(
-        final ProtobufDiscoveryNode node,
+        final DiscoveryNode node,
         final String action,
         final ProtobufTransportRequest request,
         final TransportRequestOptions options,
@@ -757,7 +759,10 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
             final ProtobufTransportResponseHandler<T> delegate;
             if (request.getParentTask().isSet()) {
                 // TODO: capture the connection instead so that we can cancel child tasks on the remote connections.
-                final Releasable unregisterChildNode = taskManager.registerChildNode(request.getParentTask().getId(), connection.getNode());
+                final Releasable unregisterChildNode = taskManager.registerProtobufChildNode(
+                    request.getParentTask().getId(),
+                    connection.getNode()
+                );
                 delegate = new ProtobufTransportResponseHandler<T>() {
                     @Override
                     public void handleResponse(T response) {
@@ -806,7 +811,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
      * Returns either a real transport connection or a local node connection if we are using the local node optimization.
     * @throws ProtobufNodeNotConnectedException if the given node is not connected
     */
-    public ProtobufTransport.Connection getConnection(ProtobufDiscoveryNode node) {
+    public Transport.ProtobufConnection getConnection(DiscoveryNode node) {
         if (isLocalNode(node)) {
             return localNodeConnection;
         } else {
@@ -815,7 +820,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     }
 
     public final <T extends ProtobufTransportResponse> void sendChildRequest(
-        final ProtobufDiscoveryNode node,
+        final DiscoveryNode node,
         final String action,
         final ProtobufTransportRequest request,
         final ProtobufTask parentTask,
@@ -865,7 +870,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         if (connection == null) {
             throw new IllegalStateException("can't send request to a null connection");
         }
-        ProtobufDiscoveryNode node = connection.getNode();
+        DiscoveryNode node = connection.getNode();
 
         Supplier<ThreadContext.StoredContext> storedContextSupplier = threadPool.getThreadContext().newRestorableContext(true);
         ContextRestoreResponseHandler<T> responseHandler = new ContextRestoreResponseHandler<>(storedContextSupplier, handler);
@@ -1023,7 +1028,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         return true;
     }
 
-    public ProtobufTransportAddress[] addressesFromString(String address) throws UnknownHostException {
+    public TransportAddress[] addressesFromString(String address) throws UnknownHostException {
         return transport.addressesFromString(address);
     }
 
@@ -1148,7 +1153,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     /** called by the {@link ProtobufTransport} implementation once a request has been sent */
     @Override
     public void onRequestSent(
-        ProtobufDiscoveryNode node,
+        DiscoveryNode node,
         long requestId,
         String action,
         ProtobufTransportRequest request,
@@ -1194,7 +1199,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
 
     private void checkForTimeout(long requestId) {
         // lets see if its in the timeout holder, but sync on mutex to make sure any ongoing timeout handling has finished
-        final ProtobufDiscoveryNode sourceNode;
+        final DiscoveryNode sourceNode;
         final String action;
         assert responseHandlers.contains(requestId) == false;
         TimeoutInfoHolder timeoutInfoHolder = timeoutInfoHandlers.remove(requestId);
@@ -1260,10 +1265,10 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         private final long requestId;
         private final long sentTime = threadPool.relativeTimeInMillis();
         private final String action;
-        private final ProtobufDiscoveryNode node;
+        private final DiscoveryNode node;
         volatile Scheduler.Cancellable cancellable;
 
-        TimeoutHandler(long requestId, ProtobufDiscoveryNode node, String action) {
+        TimeoutHandler(long requestId, DiscoveryNode node, String action) {
             this.requestId = requestId;
             this.node = node;
             this.action = action;
@@ -1324,19 +1329,19 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     */
     static class TimeoutInfoHolder {
 
-        private final ProtobufDiscoveryNode node;
+        private final DiscoveryNode node;
         private final String action;
         private final long sentTime;
         private final long timeoutTime;
 
-        TimeoutInfoHolder(ProtobufDiscoveryNode node, String action, long sentTime, long timeoutTime) {
+        TimeoutInfoHolder(DiscoveryNode node, String action, long sentTime, long timeoutTime) {
             this.node = node;
             this.action = action;
             this.sentTime = sentTime;
             this.timeoutTime = timeoutTime;
         }
 
-        public ProtobufDiscoveryNode node() {
+        public DiscoveryNode node() {
             return node;
         }
 
@@ -1420,14 +1425,14 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
     * @opensearch.internal
     */
     static class DirectResponseChannel implements ProtobufTransportChannel {
-        final ProtobufDiscoveryNode localNode;
+        final DiscoveryNode localNode;
         private final String action;
         private final long requestId;
         final ProtobufTransportService service;
         final ProtobufThreadPool threadPool;
 
         DirectResponseChannel(
-            ProtobufDiscoveryNode localNode,
+            DiscoveryNode localNode,
             String action,
             long requestId,
             ProtobufTransportService service,
@@ -1509,7 +1514,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
             if (e instanceof ProtobufRemoteTransportException) {
                 return (ProtobufRemoteTransportException) e;
             }
-            return new ProtobufRemoteTransportException(localNode.getName(), localNode.getAddress(), action, e);
+            return new ProtobufRemoteTransportException(localNode.getName(), localNode.getProtobufAddress(), action, e);
         }
 
         protected void processException(final ProtobufTransportResponseHandler handler, final ProtobufRemoteTransportException rtx) {
@@ -1541,7 +1546,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
         return threadPool;
     }
 
-    private boolean isLocalNode(ProtobufDiscoveryNode discoveryNode) {
+    private boolean isLocalNode(DiscoveryNode discoveryNode) {
         return Objects.requireNonNull(discoveryNode, "discovery node must not be null").equals(localNode);
     }
 
@@ -1572,7 +1577,7 @@ public class ProtobufTransportService extends AbstractLifecycleComponent
 
         @Override
         public void onRequestSent(
-            ProtobufDiscoveryNode node,
+            DiscoveryNode node,
             long requestId,
             String action,
             ProtobufTransportRequest request,

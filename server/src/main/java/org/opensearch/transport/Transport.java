@@ -35,6 +35,7 @@ package org.opensearch.transport;
 import org.opensearch.Version;
 import org.opensearch.action.ActionListener;
 import org.opensearch.cluster.node.DiscoveryNode;
+import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.common.collect.MapBuilder;
 import org.opensearch.common.component.LifecycleComponent;
 import org.opensearch.common.transport.BoundTransportAddress;
@@ -92,6 +93,22 @@ public interface Transport extends LifecycleComponent {
     TransportAddress[] addressesFromString(String address) throws UnknownHostException;
 
     /**
+     * The address the transport is bound on.
+    */
+    ProtobufBoundTransportAddress boundProtobufAddress();
+
+    /**
+     * Further profile bound addresses
+    * @return <code>null</code> iff profiles are unsupported, otherwise a map with name of profile and its bound transport address
+    */
+    Map<String, ProtobufBoundTransportAddress> profileProtobufBoundAddresses();
+
+    /**
+     * Returns an address from its string representation.
+    */
+    ProtobufTransportAddress[] addressesFromStringProtobuf(String address) throws UnknownHostException;
+
+    /**
      * Returns a list of all local addresses for this transport
      */
     List<String> getDefaultSeedAddresses();
@@ -101,6 +118,16 @@ public interface Transport extends LifecycleComponent {
      * The ActionListener will be called on the calling thread or the generic thread pool.
      */
     void openConnection(DiscoveryNode node, ConnectionProfile profile, ActionListener<Transport.Connection> listener);
+
+    /**
+     * Opens a new connection to the given node. When the connection is fully connected, the listener is called.
+     * The ActionListener will be called on the calling thread or the generic thread pool.
+     */
+    void openProtobufConnection(
+        DiscoveryNode node,
+        ProtobufConnectionProfile profile,
+        ActionListener<Transport.ProtobufConnection> listener
+    );
 
     TransportStats getStats();
 
@@ -150,6 +177,56 @@ public interface Transport extends LifecycleComponent {
          * Returns a key that this connection can be cached on. Delegating subclasses must delegate method call to
          * the original connection.
          */
+        default Object getCacheKey() {
+            return this;
+        }
+
+        @Override
+        void close();
+    }
+
+    /**
+     * A unidirectional connection to a {@link DiscoveryNode}
+    */
+    interface ProtobufConnection extends Closeable {
+        /**
+         * The node this connection is associated with
+        */
+        DiscoveryNode getNode();
+
+        /**
+         * Sends the request to the node this connection is associated with
+        * @param requestId see {@link ResponseHandlers#add(ResponseContext)} for details
+        * @param action the action to execute
+        * @param request the request to send
+        * @param options request options to apply
+        * @throws NodeNotConnectedException if the given node is not connected
+        */
+        void sendRequest(long requestId, String action, ProtobufTransportRequest request, TransportRequestOptions options)
+            throws IOException, TransportException;
+
+        /**
+         * The listener's {@link ActionListener#onResponse(Object)} method will be called when this
+        * connection is closed. No implementations currently throw an exception during close, so
+        * {@link ActionListener#onFailure(Exception)} will not be called.
+        *
+        * @param listener to be called
+        */
+        void addCloseListener(ActionListener<Void> listener);
+
+        boolean isClosed();
+
+        /**
+         * Returns the version of the node this connection was established with.
+        */
+        default Version getVersion() {
+            return getNode().getVersion();
+        }
+
+        /**
+         * Returns a key that this connection can be cached on. Delegating subclasses must delegate method call to
+        * the original connection.
+        */
         default Object getCacheKey() {
             return this;
         }
@@ -276,6 +353,9 @@ public interface Transport extends LifecycleComponent {
     final class RequestHandlers {
 
         private volatile Map<String, RequestHandlerRegistry<? extends TransportRequest>> requestHandlers = Collections.emptyMap();
+
+        private volatile Map<String, ProtobufRequestHandlerRegistry<? extends ProtobufTransportRequest>> protobufRequestHandlers =
+            Collections.emptyMap();
 
         synchronized <Request extends TransportRequest> void registerHandler(RequestHandlerRegistry<Request> reg) {
             if (requestHandlers.containsKey(reg.getAction())) {

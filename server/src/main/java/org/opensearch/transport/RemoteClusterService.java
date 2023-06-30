@@ -154,6 +154,14 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
         super(settings);
         this.enabled = DiscoveryNode.isRemoteClusterClient(settings);
         this.transportService = transportService;
+        this.protobufTransportService = null;
+    }
+
+    RemoteClusterService(Settings settings, ProtobufTransportService transportService) {
+        super(settings);
+        this.enabled = DiscoveryNode.isRemoteClusterClient(settings);
+        this.protobufTransportService = transportService;
+        this.transportService = null;
     }
 
     /**
@@ -209,6 +217,15 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
      */
     public Transport.Connection getConnection(DiscoveryNode node, String cluster) {
         return getRemoteClusterConnection(cluster).getConnection(node);
+    }
+
+    /**
+     * Returns a connection to the given node on the given remote cluster
+     *
+     * @throws IllegalArgumentException if the remote cluster is unknown
+     */
+    public Transport.ProtobufConnection getConnectionProtobuf(DiscoveryNode node, String cluster) {
+        return getRemoteClusterConnectionProtobuf(cluster).getConnection(node);
     }
 
     /**

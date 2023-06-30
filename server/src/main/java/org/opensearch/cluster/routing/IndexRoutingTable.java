@@ -347,6 +347,18 @@ public class IndexRoutingTable extends AbstractDiffable<IndexRoutingTable> imple
         return builder.build();
     }
 
+    public static IndexRoutingTable readFrom(CodedInputStream in) throws IOException {
+        Index index = new Index(in);
+        Builder builder = new Builder(index);
+
+        int size = in.readInt32();
+        for (int i = 0; i < size; i++) {
+            builder.addIndexShard(IndexShardRoutingTable.Builder.readFromThin(in, index));
+        }
+
+        return builder.build();
+    }
+
     public static Diff<IndexRoutingTable> readDiffFrom(StreamInput in) throws IOException {
         return readDiffFrom(IndexRoutingTable::readFrom, in);
     }

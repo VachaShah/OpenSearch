@@ -35,6 +35,7 @@ package org.opensearch.test.transport;
 import org.opensearch.Version;
 import org.opensearch.action.ActionListener;
 import org.opensearch.cluster.node.DiscoveryNode;
+import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.common.component.Lifecycle;
 import org.opensearch.common.component.LifecycleListener;
 import org.opensearch.common.transport.BoundTransportAddress;
@@ -309,5 +310,53 @@ public class StubbableTransport implements Transport {
             throws Exception;
 
         default void clearCallback() {}
+    }
+
+    @Override
+    public void setMessageListener(ProtobufTransportMessageListener listener) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setMessageListener'");
+    }
+
+    @Override
+    public ProtobufBoundTransportAddress boundProtobufAddress() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'boundProtobufAddress'");
+    }
+
+    @Override
+    public Map<String, ProtobufBoundTransportAddress> profileProtobufBoundAddresses() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'profileProtobufBoundAddresses'");
+    }
+
+    @Override
+    public ProtobufTransportAddress[] addressesFromStringProtobuf(String address) throws UnknownHostException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addressesFromStringProtobuf'");
+    }
+
+    @Override
+    public void openProtobufConnection(DiscoveryNode node, ProtobufConnectionProfile profile, ActionListener<ProtobufConnection> listener) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'openProtobufConnection'");
+    }
+
+    @Override
+    public ProtobufTransportStats getProtobufStats() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getProtobufStats'");
+    }
+
+    @Override
+    public ProtobufResponseHandlers getProtobufResponseHandlers() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getProtobufResponseHandlers'");
+    }
+
+    @Override
+    public ProtobufRequestHandlers getProtobufRequestHandlers() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getProtobufRequestHandlers'");
     }
 }

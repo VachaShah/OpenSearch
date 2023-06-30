@@ -245,6 +245,26 @@ public class RestController implements HttpServerTransport.Dispatcher {
             );
     }
 
+    /**
+     * Registers a REST handler with the controller. The REST handler declares the {@code method}
+     * and {@code path} combinations.
+     */
+    public void registerProtobufHandler(final ProtobufRestHandler restHandler) {
+        restHandler.routes().forEach(route -> registerProtobufHandler(route.getMethod(), route.getPath(), restHandler));
+        // restHandler.deprecatedRoutes()
+        // .forEach(route -> registerAsDeprecatedHandler(route.getMethod(), route.getPath(), restHandler, route.getDeprecationMessage()));
+        // restHandler.replacedRoutes()
+        // .forEach(
+        // route -> registerWithDeprecatedHandler(
+        // route.getMethod(),
+        // route.getPath(),
+        // restHandler,
+        // route.getDeprecatedMethod(),
+        // route.getDeprecatedPath()
+        // )
+        // );
+    }
+
     @Override
     public void dispatchRequest(RestRequest request, RestChannel channel, ThreadContext threadContext) {
         try {
@@ -325,6 +345,51 @@ public class RestController implements HttpServerTransport.Dispatcher {
         }
     }
 
+    private void dispatchProtobufRequest(RestRequest request, RestChannel channel, ProtobufRestHandler handler) throws Exception {
+        final int contentLength = request.content().length();
+        if (contentLength > 0) {
+            final XContentType xContentType = request.getXContentType();
+            if (xContentType == null) {
+                sendContentTypeErrorMessage(request.getAllHeaderValues("Content-Type"), channel);
+                return;
+            }
+            if (handler.supportsContentStream() && xContentType != XContentType.JSON && xContentType != XContentType.SMILE) {
+                channel.sendResponse(
+                    BytesRestResponse.createSimpleErrorResponse(
+                        channel,
+                        RestStatus.NOT_ACCEPTABLE,
+                        "Content-Type [" + xContentType + "] does not support stream parsing. Use JSON or SMILE instead"
+                    )
+                );
+                return;
+            }
+        }
+        RestChannel responseChannel = channel;
+        try {
+            if (handler.canTripCircuitBreaker()) {
+                inFlightRequestsBreaker(circuitBreakerService).addEstimateBytesAndMaybeBreak(contentLength, "<http_request>");
+            } else {
+                inFlightRequestsBreaker(circuitBreakerService).addWithoutBreaking(contentLength);
+            }
+            // iff we could reserve bytes for the request we need to send the response also over this channel
+            responseChannel = new ResourceHandlingHttpChannel(channel, circuitBreakerService, contentLength);
+            // TODO: Count requests double in the circuit breaker if they need copying?
+            if (handler.allowsUnsafeBuffers() == false) {
+                request.ensureSafeBuffers();
+            }
+            if (handler.allowSystemIndexAccessByDefault() == false && request.header(OPENSEARCH_PRODUCT_ORIGIN_HTTP_HEADER) == null) {
+                // The OPENSEARCH_PRODUCT_ORIGIN_HTTP_HEADER indicates that the request is coming from an OpenSearch product with a plan
+                // to move away from direct access to system indices, and thus deprecation warnings should not be emitted.
+                // This header is intended for internal use only.
+                protobufClient.threadPool().getThreadContext().putHeader(SYSTEM_INDEX_ACCESS_CONTROL_HEADER_KEY, Boolean.FALSE.toString());
+            }
+
+            handler.handleRequest(request, responseChannel, protobufClient);
+        } catch (Exception e) {
+            responseChannel.sendResponse(new BytesRestResponse(responseChannel, e));
+        }
+    }
+
     private boolean handleNoHandlerFound(String rawPath, RestRequest.Method method, String uri, RestChannel channel) {
         // Get the map of matching handlers for a request, for the full set of HTTP methods.
         final Set<RestRequest.Method> validMethodSet = getValidHandlerMethodSet(rawPath);
@@ -394,11 +459,18 @@ public class RestController implements HttpServerTransport.Dispatcher {
             Iterator<MethodHandlers> allHandlers = getAllHandlers(request.params(), rawPath);
             while (allHandlers.hasNext()) {
                 final RestHandler handler;
+                final ProtobufRestHandler protobufHandler;
                 final MethodHandlers handlers = allHandlers.next();
                 if (handlers == null) {
                     handler = null;
                 } else {
-                    handler = handlers.getHandler(requestMethod);
+                    if (rawPath.contains("protobuf")) {
+                        handler = null;
+                        protobufHandler = handlers.getProtobufHandler(requestMethod);
+                    } else {
+                        protobufHandler = null;
+                        handler = handlers.getHandler(requestMethod);
+                    }
                 }
                 if (handler == null) {
                     if (handleNoHandlerFound(rawPath, requestMethod, uri, channel)) {

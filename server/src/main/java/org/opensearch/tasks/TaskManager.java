@@ -46,6 +46,8 @@ import org.opensearch.cluster.ClusterChangedEvent;
 import org.opensearch.cluster.ClusterStateApplier;
 import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.cluster.node.DiscoveryNodes;
+import org.opensearch.cluster.node.DiscoveryNode;
+import org.opensearch.cluster.node.ProtobufDiscoveryNodes;
 import org.opensearch.common.SetOnce;
 import org.opensearch.common.settings.ClusterSettings;
 import org.opensearch.common.settings.Setting;
@@ -124,6 +126,8 @@ public class TaskManager implements ClusterStateApplier {
 
     private final ByteSizeValue maxHeaderSize;
     private final Map<TcpChannel, ChannelPendingTaskTracker> channelPendingTaskTrackers = ConcurrentCollections.newConcurrentMap();
+    private final Map<TcpChannel, ProtobufChannelPendingTaskTracker> protobufChannelPendingTaskTrackers = ConcurrentCollections
+        .newConcurrentMap();
     private final SetOnce<TaskCancellationService> cancellationService = new SetOnce<>();
 
     private volatile boolean taskResourceConsumersEnabled;
@@ -353,6 +357,27 @@ public class TaskManager implements ClusterStateApplier {
     }
 
     /**
+     * Register a node on which a child task will execute. The returned {@link Releasable} must be called
+    * to unregister the child node once the child task is completed or failed.
+    */
+    public Releasable registerProtobufChildNode(long taskId, DiscoveryNode node) {
+        final ProtobufCancellableTaskHolder holder = protobufCancellableTasks.get(taskId);
+        if (holder != null) {
+            logger.trace("register child node [{}] task [{}]", node, taskId);
+            holder.registerChildNode(node);
+            return Releasables.releaseOnce(() -> {
+                logger.trace("unregister child node [{}] task [{}]", node, taskId);
+                holder.unregisterChildNode(node);
+            });
+        }
+        return () -> {};
+    }
+
+    public DiscoveryNode localProtobufNode() {
+        return lastDiscoveryNodesProtobuf.getLocalNode();
+    }
+
+    /**
      * Stores the task failure
      */
     public <Response extends ActionResponse> void storeResult(Task task, Exception error, ActionListener<Response> listener) {
@@ -363,6 +388,42 @@ public class TaskManager implements ClusterStateApplier {
             return;
         }
         final TaskResult taskResult;
+        try {
+            taskResult = task.result(localNode, error);
+        } catch (IOException ex) {
+            logger.warn(() -> new ParameterizedMessage("couldn't store error {}", ExceptionsHelper.detailedMessage(error)), ex);
+            listener.onFailure(ex);
+            return;
+        }
+        taskResultsService.storeResult(taskResult, new ActionListener<Void>() {
+            @Override
+            public void onResponse(Void aVoid) {
+                listener.onFailure(error);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                logger.warn(() -> new ParameterizedMessage("couldn't store error {}", ExceptionsHelper.detailedMessage(error)), e);
+                listener.onFailure(e);
+            }
+        });
+    }
+
+    /**
+     * Stores the task failure
+    */
+    public <Response extends ProtobufActionResponse> void storeResultProtobuf(
+        ProtobufTask task,
+        Exception error,
+        ActionListener<Response> listener
+    ) {
+        DiscoveryNode localNode = lastDiscoveryNodesProtobuf.getLocalNode();
+        if (localNode == null) {
+            // too early to store anything, shouldn't really be here - just pass the error along
+            listener.onFailure(error);
+            return;
+        }
+        final ProtobufTaskResult taskResult;
         try {
             taskResult = task.result(localNode, error);
         } catch (IOException ex) {
@@ -396,6 +457,44 @@ public class TaskManager implements ClusterStateApplier {
             return;
         }
         final TaskResult taskResult;
+        try {
+            taskResult = task.result(localNode, response);
+        } catch (IOException ex) {
+            logger.warn(() -> new ParameterizedMessage("couldn't store response {}", response), ex);
+            listener.onFailure(ex);
+            return;
+        }
+
+        taskResultsService.storeResult(taskResult, new ActionListener<Void>() {
+            @Override
+            public void onResponse(Void aVoid) {
+                listener.onResponse(response);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                logger.warn(() -> new ParameterizedMessage("couldn't store response {}", response), e);
+                listener.onFailure(e);
+            }
+        });
+    }
+
+    /**
+     * Stores the task result
+    */
+    public <Response extends ProtobufActionResponse> void storeResultProtobuf(
+        ProtobufTask task,
+        Response response,
+        ActionListener<Response> listener
+    ) {
+        DiscoveryNode localNode = lastDiscoveryNodesProtobuf.getLocalNode();
+        if (localNode == null) {
+            // too early to store anything, shouldn't really be here - just pass the response along
+            logger.warn("couldn't store response {}, the node didn't join the cluster yet", response);
+            listener.onResponse(response);
+            return;
+        }
+        final ProtobufTaskResult taskResult;
         try {
             taskResult = task.result(localNode, response);
         } catch (IOException ex) {
@@ -517,6 +616,71 @@ public class TaskManager implements ClusterStateApplier {
      */
     public Collection<DiscoveryNode> startBanOnChildrenNodes(long taskId, Runnable onChildTasksCompleted) {
         final CancellableTaskHolder holder = cancellableTasks.get(taskId);
+        if (holder != null) {
+            return holder.startBan(onChildTasksCompleted);
+        } else {
+            onChildTasksCompleted.run();
+            return Collections.emptySet();
+        }
+    }
+
+    /**
+    * Returns the number of currently banned tasks.
+    * <p>
+    * Will be used in task manager stats and for debugging.
+    */
+    public int getBanCountProtobuf() {
+        return banedParentsProtobuf.size();
+    }
+
+    /**
+     * Bans all tasks with the specified parent task from execution, cancels all tasks that are currently executing.
+     * <p>
+     * This method is called when a parent task that has children is cancelled.
+     *
+     * @return a list of pending cancellable child tasks
+     */
+    public List<ProtobufCancellableTask> setBanProtobuf(ProtobufTaskId parentTaskId, String reason) {
+        logger.trace("setting ban for the parent task {} {}", parentTaskId, reason);
+
+        // Set the ban first, so the newly created tasks cannot be registered
+        synchronized (banedParentsProtobuf) {
+            if (lastDiscoveryNodesProtobuf.nodeExists(parentTaskId.getNodeId())) {
+                // Only set the ban if the node is the part of the cluster
+                banedParentsProtobuf.put(parentTaskId, reason);
+            }
+        }
+        return protobufCancellableTasks.values()
+            .stream()
+            .filter(t -> t.hasParent(parentTaskId))
+            .map(t -> t.task)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Removes the ban for the specified parent task.
+     * <p>
+     * This method is called when a previously banned task finally cancelled
+     */
+    public void removeBanProtobuf(ProtobufTaskId parentTaskId) {
+        logger.trace("removing ban for the parent task {}", parentTaskId);
+        banedParentsProtobuf.remove(parentTaskId);
+    }
+
+    // for testing
+    public Set<ProtobufTaskId> getBannedTaskIdsProtobuf() {
+        return Collections.unmodifiableSet(banedParentsProtobuf.keySet());
+    }
+
+    /**
+     * Start rejecting new child requests as the parent task was cancelled.
+     *
+     * @param taskId                the parent task id
+     * @param onChildTasksCompleted called when all child tasks are completed or failed
+     * @return the set of current nodes that have outstanding child tasks
+     */
+    public Collection<DiscoveryNode> startBanOnChildrenNodesProtobuf(long taskId, Runnable onChildTasksCompleted) {
+        final ProtobufCancellableTaskHolder holder = protobufCancellableTasks.get(taskId);
         if (holder != null) {
             return holder.startBan(onChildTasksCompleted);
         } else {
@@ -693,6 +857,141 @@ public class TaskManager implements ClusterStateApplier {
                     pendingChildNodes = Collections.emptySet();
                 } else {
                     pendingChildNodes = Set.copyOf(childTasksPerNode.keySet());
+                }
+                if (pendingChildNodes.isEmpty()) {
+                    assert childTaskCompletedListeners == null;
+                    toRun = onChildTasksCompleted;
+                } else {
+                    toRun = () -> {};
+                    if (childTaskCompletedListeners == null) {
+                        childTaskCompletedListeners = new ArrayList<>();
+                    }
+                    childTaskCompletedListeners.add(onChildTasksCompleted);
+                }
+            }
+            toRun.run();
+            return pendingChildNodes;
+        }
+    }
+
+    private static class ProtobufCancellableTaskHolder {
+        private final ProtobufCancellableTask task;
+        private boolean finished = false;
+        private List<Runnable> cancellationListeners = null;
+        private ObjectIntMap<DiscoveryNode> childTasksPerNode = null;
+        private boolean banChildren = false;
+        private List<Runnable> childTaskCompletedListeners = null;
+
+        ProtobufCancellableTaskHolder(ProtobufCancellableTask task) {
+            this.task = task;
+        }
+
+        void cancel(String reason, Runnable listener) {
+            final Runnable toRun;
+            synchronized (this) {
+                if (finished) {
+                    assert cancellationListeners == null;
+                    toRun = listener;
+                } else {
+                    toRun = () -> {};
+                    if (listener != null) {
+                        if (cancellationListeners == null) {
+                            cancellationListeners = new ArrayList<>();
+                        }
+                        cancellationListeners.add(listener);
+                    }
+                }
+            }
+            try {
+                task.cancel(reason);
+            } finally {
+                if (toRun != null) {
+                    toRun.run();
+                }
+            }
+        }
+
+        void cancel(String reason) {
+            task.cancel(reason);
+        }
+
+        /**
+         * Marks task as finished.
+        */
+        public void finish() {
+            final List<Runnable> listeners;
+            synchronized (this) {
+                this.finished = true;
+                if (cancellationListeners != null) {
+                    listeners = cancellationListeners;
+                    cancellationListeners = null;
+                } else {
+                    listeners = Collections.emptyList();
+                }
+            }
+            // We need to call the listener outside of the synchronised section to avoid potential bottle necks
+            // in the listener synchronization
+            notifyListeners(listeners);
+        }
+
+        private void notifyListeners(List<Runnable> listeners) {
+            assert Thread.holdsLock(this) == false;
+            Exception rootException = null;
+            for (Runnable listener : listeners) {
+                try {
+                    listener.run();
+                } catch (RuntimeException inner) {
+                    rootException = ExceptionsHelper.useOrSuppress(rootException, inner);
+                }
+            }
+            ExceptionsHelper.reThrowIfNotNull(rootException);
+        }
+
+        public boolean hasParent(ProtobufTaskId parentTaskId) {
+            return task.getParentTaskId().equals(parentTaskId);
+        }
+
+        public ProtobufCancellableTask getTask() {
+            return task;
+        }
+
+        synchronized void registerChildNode(DiscoveryNode node) {
+            if (banChildren) {
+                throw new TaskCancelledException("The parent task was cancelled, shouldn't start any child tasks");
+            }
+            if (childTasksPerNode == null) {
+                childTasksPerNode = new ObjectIntHashMap<>();
+            }
+            childTasksPerNode.addTo(node, 1);
+        }
+
+        void unregisterChildNode(DiscoveryNode node) {
+            final List<Runnable> listeners;
+            synchronized (this) {
+                if (childTasksPerNode.addTo(node, -1) == 0) {
+                    childTasksPerNode.remove(node);
+                }
+                if (childTasksPerNode.isEmpty() && this.childTaskCompletedListeners != null) {
+                    listeners = childTaskCompletedListeners;
+                    childTaskCompletedListeners = null;
+                } else {
+                    listeners = Collections.emptyList();
+                }
+            }
+            notifyListeners(listeners);
+        }
+
+        Set<DiscoveryNode> startBan(Runnable onChildTasksCompleted) {
+            final Set<DiscoveryNode> pendingChildNodes;
+            final Runnable toRun;
+            synchronized (this) {
+                banChildren = true;
+                if (childTasksPerNode == null) {
+                    pendingChildNodes = Collections.emptySet();
+                } else {
+                    pendingChildNodes = StreamSupport.stream(childTasksPerNode.spliterator(), false)
+                        .map(e -> e.key)
+                        .collect(Collectors.toSet());
                 }
                 if (pendingChildNodes.isEmpty()) {
                     assert childTaskCompletedListeners == null;
