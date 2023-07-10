@@ -46,8 +46,6 @@ import org.opensearch.cluster.ClusterChangedEvent;
 import org.opensearch.cluster.ClusterStateApplier;
 import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.cluster.node.DiscoveryNodes;
-import org.opensearch.cluster.node.DiscoveryNode;
-import org.opensearch.cluster.node.ProtobufDiscoveryNodes;
 import org.opensearch.common.SetOnce;
 import org.opensearch.common.settings.ClusterSettings;
 import org.opensearch.common.settings.Setting;
@@ -373,10 +371,6 @@ public class TaskManager implements ClusterStateApplier {
         return () -> {};
     }
 
-    public DiscoveryNode localProtobufNode() {
-        return lastDiscoveryNodesProtobuf.getLocalNode();
-    }
-
     /**
      * Stores the task failure
      */
@@ -417,7 +411,7 @@ public class TaskManager implements ClusterStateApplier {
         Exception error,
         ActionListener<Response> listener
     ) {
-        DiscoveryNode localNode = lastDiscoveryNodesProtobuf.getLocalNode();
+        DiscoveryNode localNode = lastDiscoveryNodes.getLocalNode();
         if (localNode == null) {
             // too early to store anything, shouldn't really be here - just pass the error along
             listener.onFailure(error);
@@ -487,7 +481,7 @@ public class TaskManager implements ClusterStateApplier {
         Response response,
         ActionListener<Response> listener
     ) {
-        DiscoveryNode localNode = lastDiscoveryNodesProtobuf.getLocalNode();
+        DiscoveryNode localNode = lastDiscoveryNodes.getLocalNode();
         if (localNode == null) {
             // too early to store anything, shouldn't really be here - just pass the response along
             logger.warn("couldn't store response {}, the node didn't join the cluster yet", response);
@@ -645,7 +639,7 @@ public class TaskManager implements ClusterStateApplier {
 
         // Set the ban first, so the newly created tasks cannot be registered
         synchronized (banedParentsProtobuf) {
-            if (lastDiscoveryNodesProtobuf.nodeExists(parentTaskId.getNodeId())) {
+            if (lastDiscoveryNodes.nodeExists(parentTaskId.getNodeId())) {
                 // Only set the ban if the node is the part of the cluster
                 banedParentsProtobuf.put(parentTaskId, reason);
             }
@@ -699,6 +693,29 @@ public class TaskManager implements ClusterStateApplier {
                 Iterator<TaskId> banIterator = banedParents.keySet().iterator();
                 while (banIterator.hasNext()) {
                     TaskId taskId = banIterator.next();
+                    if (lastDiscoveryNodes.nodeExists(taskId.getNodeId()) == false) {
+                        logger.debug(
+                            "Removing ban for the parent [{}] on the node [{}], reason: the parent node is gone",
+                            taskId,
+                            event.state().getNodes().getLocalNode()
+                        );
+                        banIterator.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void applyProtobufClusterState(ProtobufClusterChangedEvent event) {
+        lastDiscoveryNodes = event.state().getNodes();
+        if (event.nodesRemoved()) {
+            synchronized (banedParentsProtobuf) {
+                lastDiscoveryNodes = event.state().getNodes();
+                // Remove all bans that were registered by nodes that are no longer in the cluster state
+                Iterator<ProtobufTaskId> banIterator = banedParentsProtobuf.keySet().iterator();
+                while (banIterator.hasNext()) {
+                    ProtobufTaskId taskId = banIterator.next();
                     if (lastDiscoveryNodes.nodeExists(taskId.getNodeId()) == false) {
                         logger.debug(
                             "Removing ban for the parent [{}] on the node [{}], reason: the parent node is gone",
