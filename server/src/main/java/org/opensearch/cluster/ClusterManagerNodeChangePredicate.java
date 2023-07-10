@@ -68,8 +68,6 @@ public final class ClusterManagerNodeChangePredicate {
             return accept;
         };
     }
-<<<<<<< HEAD
-=======
 
     /**
      * builds a predicate that will accept a cluster state only if it was generated after the current has
@@ -92,5 +90,4 @@ public final class ClusterManagerNodeChangePredicate {
             return accept;
         };
     }
->>>>>>> 3566241b8a2... Fixing nodes api response for protobuf
 }
