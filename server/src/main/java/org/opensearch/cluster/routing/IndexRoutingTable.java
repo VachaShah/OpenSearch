@@ -36,6 +36,7 @@ import com.carrotsearch.hppc.IntSet;
 import com.carrotsearch.hppc.cursors.IntCursor;
 import com.carrotsearch.hppc.cursors.IntObjectCursor;
 import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
 
 import org.apache.lucene.util.CollectionUtil;
 import org.opensearch.cluster.AbstractDiffable;
@@ -81,7 +82,7 @@ import java.util.function.Predicate;
  *
  * @opensearch.internal
  */
-public class IndexRoutingTable extends AbstractDiffable<IndexRoutingTable> implements Iterable<IndexShardRoutingTable> {
+public class IndexRoutingTable extends AbstractDiffable<IndexRoutingTable, IndexRoutingTable> implements Iterable<IndexShardRoutingTable> {
 
     private final Index index;
     private final ShardShuffler shuffler;
@@ -666,6 +667,12 @@ public class IndexRoutingTable extends AbstractDiffable<IndexRoutingTable> imple
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public void writeTo(CodedOutputStream out) throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
     }
 
 }

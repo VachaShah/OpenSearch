@@ -33,6 +33,8 @@ package org.opensearch.cluster.metadata;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.google.protobuf.CodedOutputStream;
+
 import org.opensearch.OpenSearchParseException;
 import org.opensearch.cluster.AbstractDiffable;
 import org.opensearch.cluster.Diff;
@@ -67,7 +69,7 @@ import java.util.Set;
  *
  * @opensearch.internal
  */
-public class IndexTemplateMetadata extends AbstractDiffable<IndexTemplateMetadata> {
+public class IndexTemplateMetadata extends AbstractDiffable<IndexTemplateMetadata, IndexTemplateMetadata> {
 
     private static final DeprecationLogger deprecationLogger = DeprecationLogger.getLogger(IndexTemplateMetadata.class);
 
@@ -541,6 +543,12 @@ public class IndexTemplateMetadata extends AbstractDiffable<IndexTemplateMetadat
 
             return null;
         }
+    }
+
+    @Override
+    public void writeTo(CodedOutputStream out) throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
     }
 
 }

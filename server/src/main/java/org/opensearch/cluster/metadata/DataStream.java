@@ -43,6 +43,8 @@ import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.core.xcontent.XContentParser;
 import org.opensearch.index.Index;
 
+import com.google.protobuf.CodedOutputStream;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +58,7 @@ import java.util.Objects;
  *
  * @opensearch.internal
  */
-public final class DataStream extends AbstractDiffable<DataStream> implements ToXContentObject {
+public final class DataStream extends AbstractDiffable<DataStream, DataStream> implements ToXContentObject {
 
     public static final String BACKING_INDEX_PREFIX = ".ds-";
 
@@ -294,5 +296,11 @@ public final class DataStream extends AbstractDiffable<DataStream> implements To
         public int hashCode() {
             return Objects.hash(name);
         }
+    }
+
+    @Override
+    public void writeTo(CodedOutputStream out) throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
     }
 }

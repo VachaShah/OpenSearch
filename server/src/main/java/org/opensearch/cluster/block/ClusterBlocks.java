@@ -33,6 +33,8 @@
 package org.opensearch.cluster.block;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.google.protobuf.CodedOutputStream;
+
 import org.opensearch.cluster.AbstractDiffable;
 import org.opensearch.cluster.Diff;
 import org.opensearch.cluster.metadata.IndexMetadata;
@@ -63,7 +65,7 @@ import static java.util.stream.Collectors.toSet;
  *
  * @opensearch.internal
  */
-public class ClusterBlocks extends AbstractDiffable<ClusterBlocks> {
+public class ClusterBlocks extends AbstractDiffable<ClusterBlocks, ClusterBlocks> {
     public static final ClusterBlocks EMPTY_CLUSTER_BLOCK = new ClusterBlocks(emptySet(), ImmutableOpenMap.of());
 
     private final Set<ClusterBlock> global;
@@ -482,5 +484,11 @@ public class ClusterBlocks extends AbstractDiffable<ClusterBlocks> {
             }
             return new ClusterBlocks(unmodifiableSet(new HashSet<>(global)), indicesBuilder.build());
         }
+    }
+
+    @Override
+    public void writeTo(CodedOutputStream out) throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
     }
 }
