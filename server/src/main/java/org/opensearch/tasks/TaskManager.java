@@ -265,6 +265,85 @@ public class TaskManager implements ClusterStateApplier {
     }
 
     /**
+     * Registers a task without parent task
+    */
+    public ProtobufTask registerProtobuf(String type, String action, ProtobufTaskAwareRequest request) {
+        Map<String, String> headers = new HashMap<>();
+        long headerSize = 0;
+        long maxSize = maxHeaderSize.getBytes();
+        ThreadContext threadContext = threadPool.getThreadContext();
+        for (String key : taskHeaders) {
+            String httpHeader = threadContext.getHeader(key);
+            if (httpHeader != null) {
+                headerSize += key.length() * 2 + httpHeader.length() * 2;
+                if (headerSize > maxSize) {
+                    throw new IllegalArgumentException("Request exceeded the maximum size of task headers " + maxHeaderSize);
+                }
+                headers.put(key, httpHeader);
+            }
+        }
+        ProtobufTask task = request.createProtobufTask(taskIdGenerator.incrementAndGet(), type, action, request.getProtobufParentTask(), headers);
+        Objects.requireNonNull(task);
+        assert task.getParentTaskId().equals(request.getProtobufParentTask()) : "Request [ " + request + "] didn't preserve it parentTaskId";
+        if (logger.isTraceEnabled()) {
+            logger.trace("register {} [{}] [{}] [{}]", task.getId(), type, action, task.getDescription());
+        }
+
+        if (task.supportsResourceTracking()) {
+            boolean success = task.addResourceTrackingCompletionListener(new NotifyOnceListener<>() {
+                @Override
+                protected void innerOnResponse(ProtobufTask task) {
+                    // Stop tracking the task once the last thread has been marked inactive.
+                    if (protobufTaskResourceTrackingService.get() != null && task.supportsResourceTracking()) {
+                        protobufTaskResourceTrackingService.get().stopTracking(task);
+                    }
+                }
+
+                @Override
+                protected void innerOnFailure(Exception e) {
+                    ExceptionsHelper.reThrowIfNotNull(e);
+                }
+            });
+
+            if (success == false) {
+                logger.debug(
+                    "failed to register a completion listener as task resource tracking has already completed [taskId={}]",
+                    task.getId()
+                );
+            }
+        }
+
+        if (task instanceof ProtobufCancellableTask) {
+            registerProtobufCancellableTask(task);
+        } else {
+            ProtobufTask previousTask = protobufTasks.put(task.getId(), task);
+            assert previousTask == null;
+        }
+        return task;
+    }
+
+    private void registerProtobufCancellableTask(ProtobufTask task) {
+        ProtobufCancellableTask cancellableTask = (ProtobufCancellableTask) task;
+        ProtobufCancellableTaskHolder holder = new ProtobufCancellableTaskHolder(cancellableTask);
+        ProtobufCancellableTaskHolder oldHolder = protobufCancellableTasks.put(task.getId(), holder);
+        assert oldHolder == null;
+        // Check if this task was banned before we start it. The empty check is used to avoid
+        // computing the hash code of the parent taskId as most of the time banedParents is empty.
+        if (task.getParentTaskId().isSet() && banedParents.isEmpty() == false) {
+            String reason = banedParents.get(task.getParentTaskId());
+            if (reason != null) {
+                try {
+                    holder.cancel(reason);
+                    throw new TaskCancelledException("ProtobufTask cancelled before it started: " + reason);
+                } finally {
+                    // let's clean up the registration
+                    unregisterProtobufTask(task);
+                }
+            }
+        }
+    }
+
+    /**
      * Cancels a task
      * <p>
      * After starting cancellation on the parent task, the task manager tries to cancel all children tasks

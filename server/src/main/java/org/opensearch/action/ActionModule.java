@@ -534,7 +534,6 @@ public class ActionModule extends AbstractModule {
         this.clusterSettings = clusterSettings;
         this.settingsFilter = settingsFilter;
         this.actionPlugins = actionPlugins;
-        this.protobufIndexNameExpressionResolver = null;
         this.protobufActionPlugins = new ArrayList<>();
         ;
         this.protobufActions = new HashMap<String, ProtobufActionPlugin.ActionHandler<?, ?>>();
@@ -575,7 +574,6 @@ public class ActionModule extends AbstractModule {
     public ActionModule(
         Settings settings,
         IndexNameExpressionResolver indexNameExpressionResolver,
-        ProtobufIndexNameExpressionResolver protobufIndexNameExpressionResolver,
         IndexScopedSettings indexScopedSettings,
         ClusterSettings clusterSettings,
         SettingsFilter settingsFilter,
@@ -590,7 +588,6 @@ public class ActionModule extends AbstractModule {
     ) {
         this.settings = settings;
         this.indexNameExpressionResolver = indexNameExpressionResolver;
-        this.protobufIndexNameExpressionResolver = protobufIndexNameExpressionResolver;
         this.indexScopedSettings = indexScopedSettings;
         this.clusterSettings = clusterSettings;
         this.settingsFilter = settingsFilter;

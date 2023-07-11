@@ -26,11 +26,11 @@ import org.opensearch.threadpool.ProtobufThreadPool;
 */
 final class ProtobufRemoteClusterAwareClient extends ProtobufAbstractClient {
 
-    private final ProtobufTransportService service;
+    private final TransportService service;
     private final String clusterAlias;
     private final ProtobufRemoteClusterService remoteClusterService;
 
-    ProtobufRemoteClusterAwareClient(Settings settings, ThreadPool threadPool, ProtobufTransportService service, String clusterAlias) {
+    ProtobufRemoteClusterAwareClient(Settings settings, ThreadPool threadPool, TransportService service, String clusterAlias) {
         super(settings, threadPool);
         this.service = service;
         this.clusterAlias = clusterAlias;
@@ -44,10 +44,10 @@ final class ProtobufRemoteClusterAwareClient extends ProtobufAbstractClient {
         ActionListener<Response> listener
     ) {
         remoteClusterService.ensureConnected(clusterAlias, ActionListener.wrap(v -> {
-            Transport.ProtobufConnection connection;
+            Transport.Connection connection;
             if (request instanceof RemoteClusterAwareRequest) {
                 DiscoveryNode preferredTargetNode = ((RemoteClusterAwareRequest) request).getPreferredTargetNode();
-                connection = remoteClusterService.getConnectionProtobuf(preferredTargetNode, clusterAlias);
+                connection = remoteClusterService.getConnection(preferredTargetNode, clusterAlias);
             } else {
                 connection = remoteClusterService.getConnection(clusterAlias);
             }
