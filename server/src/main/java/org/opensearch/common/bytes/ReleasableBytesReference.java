@@ -39,6 +39,8 @@ import org.opensearch.common.io.stream.StreamInput;
 import org.opensearch.common.lease.Releasable;
 import org.opensearch.core.xcontent.XContentBuilder;
 
+import com.google.protobuf.CodedInputStream;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -120,6 +122,11 @@ public final class ReleasableBytesReference implements Releasable, BytesReferenc
     @Override
     public StreamInput streamInput() throws IOException {
         return delegate.streamInput();
+    }
+
+    @Override
+    public CodedInputStream protobufInput() throws IOException {
+        return delegate.protobufInput();
     }
 
     @Override
