@@ -217,6 +217,12 @@ public class PitService {
                     // TODO Auto-generated method stub
                     throw new UnsupportedOperationException("Unimplemented method 'handleExceptionProtobuf'");
                 }
+
+                @Override
+                public GetAllPitNodesResponse read(byte[] in) throws IOException {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("Unimplemented method 'read'");
+                }
             }
         );
     }
