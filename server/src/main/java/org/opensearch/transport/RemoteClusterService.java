@@ -151,7 +151,6 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
     private final Map<String, RemoteClusterConnection> remoteClusters = ConcurrentCollections.newConcurrentMap();
 
     private final TransportService TransportService;
-    private final Map<String, ProtobufRemoteClusterConnection> remoteClustersProtobuf = ConcurrentCollections.newConcurrentMap();
 
     RemoteClusterService(Settings settings, TransportService transportService) {
         super(settings);
@@ -159,13 +158,6 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
         this.transportService = transportService;
         this.TransportService = null;
     }
-
-    // RemoteClusterService(Settings settings, TransportService transportService) {
-    //     super(settings);
-    //     this.enabled = DiscoveryNode.isRemoteClusterClient(settings);
-    //     this.TransportService = transportService;
-    //     this.transportService = null;
-    // }
 
     /**
      * Returns <code>true</code> if at least one remote cluster is configured
@@ -222,15 +214,6 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
         return getRemoteClusterConnection(cluster).getConnection(node);
     }
 
-    // /**
-    //  * Returns a connection to the given node on the given remote cluster
-    //  *
-    //  * @throws IllegalArgumentException if the remote cluster is unknown
-    //  */
-    // public Transport.ProtobufConnection getConnectionProtobuf(DiscoveryNode node, String cluster) {
-    //     return getRemoteClusterConnectionProtobuf(cluster).getConnection(node);
-    // }
-
     /**
      * Ensures that the given cluster alias is connected. If the cluster is connected this operation
      * will invoke the listener immediately.
@@ -249,10 +232,6 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
     public Transport.Connection getConnection(String cluster) {
         return getRemoteClusterConnection(cluster).getConnection();
     }
-
-    // public Transport.ProtobufConnection getConnectionProtobuf(String cluster) {
-    //     return getRemoteClusterConnectionProtobuf(cluster).getConnection();
-    // }
 
     RemoteClusterConnection getRemoteClusterConnection(String cluster) {
         if (enabled == false) {
@@ -440,25 +419,6 @@ public final class RemoteClusterService extends RemoteClusterAware implements Cl
             throw new NoSuchRemoteClusterException(clusterAlias);
         }
         return new RemoteClusterAwareClient(settings, threadPool, transportService, clusterAlias);
-    }
-
-    /**
-     * Returns a client to the remote cluster if the given cluster alias exists.
-    *
-    * @param threadPool   the {@link ThreadPool} for the client
-    * @param clusterAlias the cluster alias the remote cluster is registered under
-    * @throws IllegalArgumentException if the given clusterAlias doesn't exist
-    */
-    public ProtobufClient getRemoteClusterClientProtobuf(ThreadPool threadPool, String clusterAlias) {
-        if (TransportService.getRemoteClusterService().isEnabled() == false) {
-            throw new IllegalArgumentException(
-                "this node does not have the " + DiscoveryNodeRole.REMOTE_CLUSTER_CLIENT_ROLE.roleName() + " role"
-            );
-        }
-        if (TransportService.getRemoteClusterService().getRemoteClusterNames().contains(clusterAlias) == false) {
-            throw new NoSuchRemoteClusterException(clusterAlias);
-        }
-        return new ProtobufRemoteClusterAwareClient(settings, threadPool, TransportService, clusterAlias);
     }
 
     Collection<RemoteClusterConnection> getConnections() {

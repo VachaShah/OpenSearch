@@ -70,7 +70,6 @@ import org.opensearch.repositories.IndexId;
 import org.opensearch.repositories.RepositoriesService;
 import org.opensearch.repositories.Repository;
 import org.opensearch.threadpool.ThreadPool;
-import org.opensearch.transport.ProtobufTransportException;
 import org.opensearch.transport.TransportException;
 import org.opensearch.transport.TransportRequestDeduplicator;
 import org.opensearch.transport.TransportResponseHandler;
@@ -604,18 +603,6 @@ public class SnapshotShardsService extends AbstractLifecycleComponent implements
                     @Override
                     public String executor() {
                         return ThreadPool.Names.SAME;
-                    }
-
-                    @Override
-                    public UpdateIndexShardSnapshotStatusResponse read(CodedInputStream in) throws IOException {
-                        // TODO Auto-generated method stub
-                        throw new UnsupportedOperationException("Unimplemented method 'read'");
-                    }
-
-                    @Override
-                    public void handleExceptionProtobuf(ProtobufTransportException exp) {
-                        // TODO Auto-generated method stub
-                        throw new UnsupportedOperationException("Unimplemented method 'handleExceptionProtobuf'");
                     }
 
                     @Override

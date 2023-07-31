@@ -33,16 +33,13 @@
 package org.opensearch.index.seqno;
 
 import org.opensearch.core.ParseField;
-import org.opensearch.core.common.io.stream.StreamInput;
-import org.opensearch.core.common.io.stream.StreamOutput;
-import org.opensearch.core.common.io.stream.Writeable;
+import org.opensearch.common.io.stream.StreamInput;
+import org.opensearch.common.io.stream.StreamOutput;
+import org.opensearch.common.io.stream.Writeable;
 import org.opensearch.core.xcontent.ConstructingObjectParser;
 import org.opensearch.core.xcontent.ToXContentObject;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.core.xcontent.XContentParser;
-
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 
 import org.opensearch.core.xcontent.XContent;
 
@@ -57,7 +54,7 @@ import java.util.Objects;
  *
  * @opensearch.internal
  */
-public final class RetentionLease implements ToXContentObject, Writeable, ProtobufWriteable {
+public final class RetentionLease implements ToXContentObject, Writeable {
 
     private final String id;
 
@@ -158,33 +155,6 @@ public final class RetentionLease implements ToXContentObject, Writeable, Protob
         out.writeZLong(retainingSequenceNumber);
         out.writeVLong(timestamp);
         out.writeString(source);
-    }
-
-    /**
-     * Constructs a new retention lease from a stream. The retention lease should have been written.
-     *
-     * @param in the stream to construct the retention lease from
-     * @throws IOException if an I/O exception occurs reading from the stream
-     */
-    public RetentionLease(final CodedInputStream in) throws IOException {
-        id = in.readString();
-        retainingSequenceNumber = in.readInt64();
-        timestamp = in.readInt64();
-        source = in.readString();
-    }
-
-    /**
-     * Writes a retention lease to a stream in a manner suitable for later reconstruction.
-     *
-     * @param out the stream to write the retention lease to
-     * @throws IOException if an I/O exception occurs writing to the stream
-     */
-    @Override
-    public void writeTo(final CodedOutputStream out) throws IOException {
-        out.writeStringNoTag(id);
-        out.writeInt64NoTag(retainingSequenceNumber);
-        out.writeInt64NoTag(timestamp);
-        out.writeStringNoTag(source);
     }
 
     private static final ParseField ID_FIELD = new ParseField("id");
