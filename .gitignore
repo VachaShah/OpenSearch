@@ -62,3 +62,5 @@ testfixtures_shared/
 
 # build files generated
 doc-tools/missing-doclet/bin/
+
+server/bin/*
