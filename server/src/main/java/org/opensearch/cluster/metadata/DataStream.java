@@ -58,7 +58,7 @@ import java.util.Objects;
  *
  * @opensearch.internal
  */
-public final class DataStream extends AbstractDiffable<DataStream, DataStream> implements ToXContentObject {
+public final class DataStream extends AbstractDiffable<DataStream> implements ToXContentObject {
 
     public static final String BACKING_INDEX_PREFIX = ".ds-";
 
@@ -298,9 +298,4 @@ public final class DataStream extends AbstractDiffable<DataStream, DataStream> i
         }
     }
 
-    @Override
-    public void writeTo(CodedOutputStream out) throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
-    }
 }

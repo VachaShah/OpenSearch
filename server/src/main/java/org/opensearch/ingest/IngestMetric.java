@@ -110,10 +110,4 @@ class IngestMetric {
         return new IngestStats.Stats(ingestCount.count(), ingestTime.sum(), ingestCurrent.get(), ingestFailed.count());
     }
 
-    /**
-     * Creates a serializable representation for these metrics.
-     */
-    ProtobufIngestStats.Stats createProtobufStats() {
-        return new ProtobufIngestStats.Stats(ingestCount.count(), ingestTime.sum(), ingestCurrent.get(), ingestFailed.count());
-    }
 }

@@ -24,7 +24,6 @@ import org.opensearch.common.Strings;
 import org.opensearch.common.inject.Inject;
 import org.opensearch.common.io.stream.StreamInput;
 import org.opensearch.threadpool.ThreadPool;
-import org.opensearch.transport.ProtobufTransportException;
 import org.opensearch.transport.Transport;
 import org.opensearch.transport.TransportException;
 import org.opensearch.transport.TransportResponseHandler;
@@ -205,18 +204,6 @@ public class PitService {
                 @Override
                 public GetAllPitNodesResponse read(StreamInput in) throws IOException {
                     return new GetAllPitNodesResponse(in);
-                }
-
-                @Override
-                public GetAllPitNodesResponse read(CodedInputStream in) throws IOException {
-                    // TODO Auto-generated method stub
-                    throw new UnsupportedOperationException("Unimplemented method 'read'");
-                }
-
-                @Override
-                public void handleExceptionProtobuf(ProtobufTransportException exp) {
-                    // TODO Auto-generated method stub
-                    throw new UnsupportedOperationException("Unimplemented method 'handleExceptionProtobuf'");
                 }
 
                 @Override

@@ -65,7 +65,7 @@ import static java.util.stream.Collectors.toSet;
  *
  * @opensearch.internal
  */
-public class ClusterBlocks extends AbstractDiffable<ClusterBlocks, ClusterBlocks> {
+public class ClusterBlocks extends AbstractDiffable<ClusterBlocks> {
     public static final ClusterBlocks EMPTY_CLUSTER_BLOCK = new ClusterBlocks(emptySet(), ImmutableOpenMap.of());
 
     private final Set<ClusterBlock> global;
@@ -486,9 +486,4 @@ public class ClusterBlocks extends AbstractDiffable<ClusterBlocks, ClusterBlocks
         }
     }
 
-    @Override
-    public void writeTo(CodedOutputStream out) throws IOException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'writeTo'");
-    }
 }
