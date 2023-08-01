@@ -43,8 +43,6 @@ import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.core.xcontent.XContentParser;
 import org.opensearch.index.Index;
 
-import com.google.protobuf.CodedOutputStream;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;

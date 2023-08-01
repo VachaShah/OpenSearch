@@ -35,7 +35,6 @@ package org.opensearch.cluster.routing;
 import com.carrotsearch.hppc.IntSet;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.protobuf.CodedInputStream;
 
 import org.opensearch.cluster.Diff;
 import org.opensearch.cluster.Diffable;

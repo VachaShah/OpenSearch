@@ -62,15 +62,11 @@ import org.opensearch.core.concurrency.OpenSearchRejectedExecutionException;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.io.IOUtils;
 import org.opensearch.node.NodeClosedException;
-import org.opensearch.node.ProtobufReportingService;
 import org.opensearch.node.ReportingService;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
 import org.opensearch.threadpool.Scheduler;
 import org.opensearch.threadpool.ThreadPool;
-
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

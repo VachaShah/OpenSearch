@@ -32,7 +32,6 @@
 
 package org.opensearch;
 
-import com.google.protobuf.CodedInputStream;
 import org.opensearch.cluster.metadata.IndexMetadata;
 import org.opensearch.common.Strings;
 import org.opensearch.common.SuppressForbidden;
@@ -99,10 +98,6 @@ public class Version implements Comparable<Version>, ToXContentFragment {
 
     public static Version readVersion(StreamInput in) throws IOException {
         return fromId(in.readVInt());
-    }
-
-    public static Version readVersionProtobuf(CodedInputStream in) throws IOException {
-        return fromId(in.readInt32());
     }
 
     public static Version fromId(int id) {

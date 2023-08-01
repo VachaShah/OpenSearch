@@ -70,8 +70,6 @@ import org.opensearch.transport.TransportResponseHandler;
 import org.opensearch.transport.TransportService;
 import org.yaml.snakeyaml.Yaml;
 
-import com.google.protobuf.CodedInputStream;
-
 import org.opensearch.env.EnvironmentSettingsResponse;
 
 /**

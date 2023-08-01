@@ -33,7 +33,6 @@ package org.opensearch.cluster.metadata;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.protobuf.CodedOutputStream;
 
 import org.opensearch.OpenSearchParseException;
 import org.opensearch.cluster.AbstractDiffable;

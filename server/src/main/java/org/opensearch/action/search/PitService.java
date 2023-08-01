@@ -9,7 +9,6 @@
 package org.opensearch.action.search;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.google.protobuf.CodedInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

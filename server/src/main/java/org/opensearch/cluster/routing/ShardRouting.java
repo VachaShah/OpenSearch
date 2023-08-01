@@ -36,7 +36,6 @@ import org.opensearch.cluster.routing.RecoverySource.ExistingStoreRecoverySource
 import org.opensearch.cluster.routing.RecoverySource.PeerRecoverySource;
 import org.opensearch.cluster.routing.allocation.allocator.BalancedShardsAllocator;
 import org.opensearch.common.Nullable;
-import org.opensearch.common.io.stream.ProtobufWriteable;
 import org.opensearch.common.io.stream.StreamInput;
 import org.opensearch.common.io.stream.StreamOutput;
 import org.opensearch.common.io.stream.Writeable;
@@ -44,9 +43,6 @@ import org.opensearch.core.xcontent.ToXContentObject;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.Index;
 import org.opensearch.index.shard.ShardId;
-
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.util.Collections;
