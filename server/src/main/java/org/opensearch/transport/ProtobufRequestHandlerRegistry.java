@@ -8,7 +8,6 @@
 
 package org.opensearch.transport;
 
-import com.google.protobuf.CodedInputStream;
 import org.opensearch.common.io.stream.ProtobufWriteable;
 import org.opensearch.common.lease.Releasable;
 import org.opensearch.common.lease.Releasables;

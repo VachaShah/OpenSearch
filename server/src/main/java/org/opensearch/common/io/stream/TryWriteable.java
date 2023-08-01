@@ -33,7 +33,7 @@ public interface TryWriteable {
      * Most classes should implement {@link TryWriteable} and the {@link TryWriteable#writeTo(OutputStream)} method should <em>use</em>
      * {@link OutputStream} methods directly or this indirectly:
      * <pre><code>
-     * public void writeTo(CodedOutputStream out) throws IOException {
+     * public void writeTo(OutputStream out) throws IOException {
      *     out.writeVInt(someValue);
      * }
      * </code></pre>

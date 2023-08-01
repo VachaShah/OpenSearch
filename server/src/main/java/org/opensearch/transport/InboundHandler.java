@@ -64,7 +64,6 @@ import org.opensearch.server.proto.NodesStatsRequestProto.NodesStatsReq;
 import org.opensearch.server.proto.OutboundMessageProto.OutboundMsg;
 import org.opensearch.threadpool.ThreadPool;
 
-import com.google.protobuf.CodedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -157,8 +156,6 @@ public class InboundHandler {
 
     // Empty stream constant to avoid instantiating a new stream for empty messages.
     private static final StreamInput EMPTY_STREAM_INPUT = new ByteBufferStreamInput(ByteBuffer.wrap(BytesRef.EMPTY_BYTES));
-
-    private static final CodedInputStream EMPTY_CODED_INPUT_STREAM = CodedInputStream.newInstance(BytesRef.EMPTY_BYTES);
 
     private void messageReceivedProtobuf(TcpChannel channel, ProtobufOutboundMessage message, long startTime) throws IOException {
         final InetSocketAddress remoteAddress = channel.getRemoteAddress();

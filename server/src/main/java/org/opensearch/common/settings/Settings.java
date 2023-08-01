@@ -32,7 +32,6 @@
 
 package org.opensearch.common.settings;
 
-import com.google.protobuf.CodedOutputStream;
 import org.apache.logging.log4j.Level;
 import org.opensearch.OpenSearchGenerationException;
 import org.opensearch.OpenSearchParseException;
@@ -583,16 +582,6 @@ public final class Settings implements ToXContentFragment {
         for (Map.Entry<String, Object> entry : entries) {
             out.writeString(entry.getKey());
             out.writeGenericValue(entry.getValue());
-        }
-    }
-
-    public static void writeSettingsToStreamProtobuf(Settings settings, CodedOutputStream out) throws IOException {
-        // pull settings to exclude secure settings in size()
-        Set<Map.Entry<String, Object>> entries = settings.settings.entrySet();
-        out.writeInt32NoTag(entries.size());
-        for (Map.Entry<String, Object> entry : entries) {
-            out.writeStringNoTag(entry.getKey());
-            out.writeStringNoTag(entry.getValue().toString());
         }
     }
 
