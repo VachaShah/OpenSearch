@@ -32,10 +32,6 @@
 
 package org.opensearch.cluster.routing;
 
-import com.carrotsearch.hppc.IntSet;
-import com.carrotsearch.hppc.cursors.IntCursor;
-import com.carrotsearch.hppc.cursors.IntObjectCursor;
-
 import org.apache.lucene.util.CollectionUtil;
 import org.opensearch.cluster.AbstractDiffable;
 import org.opensearch.cluster.Diff;

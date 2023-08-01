@@ -16,9 +16,6 @@ package org.opensearch.common.io.stream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 /**
  * Implementers can be written to write to output and read from input using Protobuf.
 *
@@ -58,7 +55,7 @@ public interface TryWriteable {
      * Reference to a method that can read some object from a stream. By convention this is a constructor that takes
      * {@linkplain byte[]} as an argument for most classes and a static method for things like enums.
      * <pre><code>
-     * public MyClass(final CodedInputStream in) throws IOException {
+     * public MyClass(final byte[] in) throws IOException {
      *     this.someValue = in.readVInt();
      * }
      * </code></pre>

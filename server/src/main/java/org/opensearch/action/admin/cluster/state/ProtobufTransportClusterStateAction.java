@@ -8,8 +8,6 @@
 
 package org.opensearch.action.admin.cluster.state;
 
-import com.google.protobuf.CodedInputStream;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opensearch.action.ActionListener;
@@ -19,11 +17,7 @@ import org.opensearch.cluster.ClusterState;
 import org.opensearch.cluster.ClusterStateObserver;
 import org.opensearch.cluster.NotClusterManagerException;
 import org.opensearch.cluster.block.ClusterBlockException;
-import org.opensearch.cluster.metadata.IndexMetadata;
 import org.opensearch.cluster.metadata.IndexNameExpressionResolver;
-import org.opensearch.cluster.metadata.Metadata;
-import org.opensearch.cluster.metadata.Metadata.Custom;
-import org.opensearch.cluster.routing.RoutingTable;
 import org.opensearch.cluster.service.ClusterService;
 import org.opensearch.common.inject.Inject;
 import org.opensearch.common.unit.TimeValue;
@@ -33,7 +27,6 @@ import org.opensearch.transport.TransportService;
 
 import java.io.IOException;
 import java.util.function.Predicate;
-import java.util.Map;
 
 /**
  * Transport action for obtaining cluster state

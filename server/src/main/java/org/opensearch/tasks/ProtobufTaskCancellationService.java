@@ -49,7 +49,7 @@ public class ProtobufTaskCancellationService {
         this.taskManager = transportService.getTaskManager();
         transportService.registerRequestHandlerProtobuf(
             BAN_PARENT_ACTION_NAME,
-            ProtobufThreadPool.Names.SAME,
+            ThreadPool.Names.SAME,
             BanParentTaskRequest::new,
             new BanParentRequestHandler()
         );
@@ -69,7 +69,7 @@ public class ProtobufTaskCancellationService {
                 logger.trace("child tasks of parent [{}] are completed", taskId);
                 groupedListener.onResponse(null);
             });
-            taskManager.cancel(task, reason, () -> {
+            taskManager.cancelProtobufTask(task, reason, () -> {
                 logger.trace("task [{}] is cancelled", taskId);
                 groupedListener.onResponse(null);
             });
@@ -93,9 +93,9 @@ public class ProtobufTaskCancellationService {
         } else {
             logger.trace("task [{}] doesn't have any children that should be cancelled", taskId);
             if (waitForCompletion) {
-                taskManager.cancel(task, reason, () -> listener.onResponse(null));
+                taskManager.cancelProtobufTask(task, reason, () -> listener.onResponse(null));
             } else {
-                taskManager.cancel(task, reason, () -> {});
+                taskManager.cancelProtobufTask(task, reason, () -> {});
                 listener.onResponse(null);
             }
         }
@@ -124,7 +124,7 @@ public class ProtobufTaskCancellationService {
                 node,
                 BAN_PARENT_ACTION_NAME,
                 banRequest,
-                new ProtobufEmptyTransportResponseHandler(ProtobufThreadPool.Names.SAME) {
+                new ProtobufEmptyTransportResponseHandler(ThreadPool.Names.SAME) {
                     @Override
                     public void handleResponse(TransportResponse.Empty response) {
                         logger.trace("sent ban for tasks with the parent [{}] to the node [{}]", taskId, node);
@@ -152,7 +152,7 @@ public class ProtobufTaskCancellationService {
                 node,
                 BAN_PARENT_ACTION_NAME,
                 request,
-                new ProtobufEmptyTransportResponseHandler(ProtobufThreadPool.Names.SAME) {
+                new ProtobufEmptyTransportResponseHandler(ThreadPool.Names.SAME) {
                     @Override
                     public void handleException(TransportException exp) {
                         assert ExceptionsHelper.unwrapCause(exp) instanceof OpenSearchSecurityException == false;
@@ -217,7 +217,7 @@ public class ProtobufTaskCancellationService {
                     localNodeId(),
                     request.reason
                 );
-                final List<ProtobufCancellableTask> childTasks = taskManager.setBan(request.parentTaskId, request.reason);
+                final List<ProtobufCancellableTask> childTasks = taskManager.setBanProtobuf(request.parentTaskId, request.reason);
                 final GroupedActionListener<Void> listener = new GroupedActionListener<>(
                     ActionListener.map(
                         new ProtobufChannelActionListener<>(channel, BAN_PARENT_ACTION_NAME, request),

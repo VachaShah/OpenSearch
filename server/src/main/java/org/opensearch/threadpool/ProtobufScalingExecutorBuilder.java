@@ -85,13 +85,13 @@ public final class ProtobufScalingExecutorBuilder extends ProtobufExecutorBuilde
         return new ScalingExecutorSettings(nodeName, coreThreads, maxThreads, keepAlive);
     }
 
-    ProtobufThreadPool.ExecutorHolder build(final ScalingExecutorSettings settings, final ThreadContext threadContext) {
+    ThreadPool.ExecutorHolder build(final ScalingExecutorSettings settings, final ThreadContext threadContext) {
         TimeValue keepAlive = settings.keepAlive;
         int core = settings.core;
         int max = settings.max;
-        final ProtobufThreadPool.Info info = new ProtobufThreadPool.Info(
+        final ThreadPool.Info info = new ThreadPool.Info(
             name(),
-            ProtobufThreadPool.ThreadPoolType.SCALING,
+            ThreadPool.ThreadPoolType.SCALING,
             core,
             max,
             keepAlive,
@@ -109,11 +109,11 @@ public final class ProtobufScalingExecutorBuilder extends ProtobufExecutorBuilde
             threadFactory,
             threadContext
         );
-        return new ProtobufThreadPool.ExecutorHolder(executor, info);
+        return new ThreadPool.ExecutorHolder(executor, info);
     }
 
     @Override
-    String formatInfo(ProtobufThreadPool.Info info) {
+    String formatInfo(ThreadPool.Info info) {
         return String.format(
             Locale.ROOT,
             "name [%s], core [%d], max [%d], keep alive [%s]",

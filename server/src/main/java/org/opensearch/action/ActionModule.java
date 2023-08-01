@@ -51,11 +51,15 @@ import org.opensearch.action.admin.cluster.health.TransportClusterHealthAction;
 import org.opensearch.action.admin.cluster.node.hotthreads.NodesHotThreadsAction;
 import org.opensearch.action.admin.cluster.node.hotthreads.TransportNodesHotThreadsAction;
 import org.opensearch.action.admin.cluster.node.info.NodesInfoAction;
+import org.opensearch.action.admin.cluster.node.info.ProtobufNodesInfoAction;
+import org.opensearch.action.admin.cluster.node.info.ProtobufTransportNodesInfoAction;
 import org.opensearch.action.admin.cluster.node.info.TransportNodesInfoAction;
 import org.opensearch.action.admin.cluster.node.liveness.TransportLivenessAction;
 import org.opensearch.action.admin.cluster.node.reload.NodesReloadSecureSettingsAction;
 import org.opensearch.action.admin.cluster.node.reload.TransportNodesReloadSecureSettingsAction;
 import org.opensearch.action.admin.cluster.node.stats.NodesStatsAction;
+import org.opensearch.action.admin.cluster.node.stats.ProtobufNodesStatsAction;
+import org.opensearch.action.admin.cluster.node.stats.ProtobufTransportNodesStatsAction;
 import org.opensearch.action.admin.cluster.remotestore.stats.RemoteStoreStatsAction;
 import org.opensearch.action.admin.cluster.node.stats.TransportNodesStatsAction;
 import org.opensearch.action.admin.cluster.remotestore.stats.TransportRemoteStoreStatsAction;
@@ -106,6 +110,8 @@ import org.opensearch.action.admin.cluster.snapshots.restore.TransportRestoreSna
 import org.opensearch.action.admin.cluster.snapshots.status.SnapshotsStatusAction;
 import org.opensearch.action.admin.cluster.snapshots.status.TransportSnapshotsStatusAction;
 import org.opensearch.action.admin.cluster.state.ClusterStateAction;
+import org.opensearch.action.admin.cluster.state.ProtobufClusterStateAction;
+import org.opensearch.action.admin.cluster.state.ProtobufTransportClusterStateAction;
 import org.opensearch.action.admin.cluster.state.TransportClusterStateAction;
 import org.opensearch.action.admin.cluster.stats.ClusterStatsAction;
 import org.opensearch.action.admin.cluster.stats.TransportClusterStatsAction;
@@ -250,6 +256,8 @@ import org.opensearch.action.ingest.PutPipelineTransportAction;
 import org.opensearch.action.ingest.SimulatePipelineAction;
 import org.opensearch.action.ingest.SimulatePipelineTransportAction;
 import org.opensearch.action.main.MainAction;
+import org.opensearch.action.main.ProtobufMainAction;
+import org.opensearch.action.main.ProtobufTransportMainAction;
 import org.opensearch.action.main.TransportMainAction;
 import org.opensearch.action.search.ClearScrollAction;
 import org.opensearch.action.search.CreatePitAction;
@@ -274,6 +282,7 @@ import org.opensearch.action.search.TransportSearchScrollAction;
 import org.opensearch.action.support.ActionFilters;
 import org.opensearch.action.support.AutoCreateIndex;
 import org.opensearch.action.support.DestructiveOperations;
+import org.opensearch.action.support.ProtobufActionFilters;
 import org.opensearch.action.support.ProtobufTransportAction;
 import org.opensearch.action.support.TransportAction;
 import org.opensearch.action.termvectors.MultiTermVectorsAction;
@@ -284,6 +293,7 @@ import org.opensearch.action.termvectors.TransportTermVectorsAction;
 import org.opensearch.action.update.TransportUpdateAction;
 import org.opensearch.action.update.UpdateAction;
 import org.opensearch.client.node.NodeClient;
+import org.opensearch.client.node.ProtobufNodeClient;
 import org.opensearch.cluster.metadata.IndexNameExpressionResolver;
 import org.opensearch.cluster.node.DiscoveryNodes;
 import org.opensearch.common.NamedRegistry;
@@ -308,8 +318,10 @@ import org.opensearch.persistent.RemovePersistentTaskAction;
 import org.opensearch.persistent.StartPersistentTaskAction;
 import org.opensearch.persistent.UpdatePersistentTaskStatusAction;
 import org.opensearch.plugins.ActionPlugin;
+import org.opensearch.plugins.ProtobufActionPlugin;
 import org.opensearch.plugins.ActionPlugin.ActionHandler;
 import org.opensearch.rest.NamedRoute;
+import org.opensearch.rest.ProtobufRestHandler;
 import org.opensearch.rest.RestController;
 import org.opensearch.rest.RestHandler;
 import org.opensearch.rest.RestHeaderDefinition;
@@ -409,6 +421,9 @@ import org.opensearch.rest.action.admin.indices.RestUpgradeAction;
 import org.opensearch.rest.action.admin.indices.RestUpgradeStatusAction;
 import org.opensearch.rest.action.admin.indices.RestValidateQueryAction;
 import org.opensearch.rest.action.cat.AbstractCatAction;
+import org.opensearch.rest.action.cat.ProtobufAbstractCatAction;
+import org.opensearch.rest.action.cat.ProtobufRestCatAction;
+import org.opensearch.rest.action.cat.ProtobufRestNodesAction;
 import org.opensearch.rest.action.cat.RestAliasAction;
 import org.opensearch.rest.action.cat.RestAllocationAction;
 import org.opensearch.rest.action.cat.RestCatAction;
@@ -463,6 +478,7 @@ import org.opensearch.usage.UsageService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -493,18 +509,22 @@ public class ActionModule extends AbstractModule {
     private final ClusterSettings clusterSettings;
     private final SettingsFilter settingsFilter;
     private final List<ActionPlugin> actionPlugins;
+    private final List<ProtobufActionPlugin> protobufActionPlugins;
     // The unmodifiable map containing OpenSearch and Plugin actions
     // This is initialized at node bootstrap and contains same-JVM actions
     // It will be wrapped in the Dynamic Action Registry but otherwise
     // remains unchanged from its prior purpose, and registered actions
     // will remain accessible.
     private final Map<String, ActionHandler<?, ?>> actions;
+     private final Map<String, ProtobufActionPlugin.ActionHandler<?, ?>> protobufActions;
     // A dynamic action registry which includes the above immutable actions
     // and also registers dynamic actions which may be unregistered. Usually
     // associated with remote action execution on extensions, possibly in
     // a different JVM and possibly on a different server.
     private final DynamicActionRegistry dynamicActionRegistry;
+    private final ProtobufDynamicActionRegistry protobufDynamicActionRegistry;
     private final ActionFilters actionFilters;
+    private final ProtobufActionFilters protobufActionFilters;
     private final AutoCreateIndex autoCreateIndex;
     private final DestructiveOperations destructiveOperations;
     private final RestController restController;
@@ -544,6 +564,7 @@ public class ActionModule extends AbstractModule {
         actions = setupActions(actionPlugins);
         actionFilters = setupActionFilters(actionPlugins);
         dynamicActionRegistry = new DynamicActionRegistry();
+        protobufDynamicActionRegistry = new ProtobufDynamicActionRegistry();
         autoCreateIndex = new AutoCreateIndex(settings, clusterSettings, indexNameExpressionResolver, systemIndices);
         destructiveOperations = new DestructiveOperations(settings, clusterSettings);
         Set<RestHeaderDefinition> headers = Stream.concat(
@@ -568,7 +589,7 @@ public class ActionModule extends AbstractModule {
             actionPlugins.stream().flatMap(p -> p.indicesAliasesRequestValidators().stream()).collect(Collectors.toList())
         );
 
-        restController = new RestController(headers, restWrapper, nodeClient, circuitBreakerService, usageService);
+        restController = new RestController(headers, restWrapper, nodeClient, circuitBreakerService, usageService, identityService);
     }
 
     public ActionModule(
@@ -584,7 +605,9 @@ public class ActionModule extends AbstractModule {
         ProtobufNodeClient protobufNodeClient,
         CircuitBreakerService circuitBreakerService,
         UsageService usageService,
-        SystemIndices systemIndices
+        SystemIndices systemIndices,
+        IdentityService identityService,
+        ExtensionsManager extensionsManager
     ) {
         this.settings = settings;
         this.indexNameExpressionResolver = indexNameExpressionResolver;
@@ -593,6 +616,7 @@ public class ActionModule extends AbstractModule {
         this.settingsFilter = settingsFilter;
         this.protobufActionPlugins = protobufActionPlugins;
         this.threadPool = threadPool;
+        this.extensionsManager = extensionsManager;
         this.actionPlugins = actionPlugins;
         actions = setupActions(actionPlugins);
         actionFilters = setupActionFilters(actionPlugins);
@@ -642,7 +666,8 @@ public class ActionModule extends AbstractModule {
             protobufRestWrapper,
             protobufNodeClient,
             circuitBreakerService,
-            usageService
+            usageService,
+            identityService
         );
     }
 
@@ -845,8 +870,43 @@ public class ActionModule extends AbstractModule {
         return unmodifiableMap(actions.getRegistry());
     }
 
+    static Map<String, ProtobufActionPlugin.ActionHandler<?, ?>> setupProtobufActions(List<ProtobufActionPlugin> actionPlugins) {
+        // Subclass NamedRegistry for easy registration
+        class ActionRegistry extends NamedRegistry<ProtobufActionPlugin.ActionHandler<?, ?>> {
+            ActionRegistry() {
+                super("action");
+            }
+
+            public void register(ProtobufActionPlugin.ActionHandler<?, ?> handler) {
+                register(handler.getAction().name(), handler);
+            }
+
+            public <Request extends ProtobufActionRequest, Response extends ProtobufActionResponse> void register(
+                ProtobufActionType<Response> action,
+                Class<? extends ProtobufTransportAction<Request, Response>> transportAction,
+                Class<?>... supportTransportActions
+            ) {
+                register(new ProtobufActionPlugin.ActionHandler<>(action, transportAction, supportTransportActions));
+            }
+        }
+        ActionRegistry actions = new ActionRegistry();
+
+        actions.register(ProtobufMainAction.INSTANCE, ProtobufTransportMainAction.class);
+        actions.register(ProtobufNodesInfoAction.INSTANCE, ProtobufTransportNodesInfoAction.class);
+        actions.register(ProtobufNodesStatsAction.INSTANCE, ProtobufTransportNodesStatsAction.class);
+        actions.register(ProtobufClusterStateAction.INSTANCE, ProtobufTransportClusterStateAction.class);
+
+        return unmodifiableMap(actions.getRegistry());
+    }
+
     private ActionFilters setupActionFilters(List<ActionPlugin> actionPlugins) {
         return new ActionFilters(
+            Collections.unmodifiableSet(actionPlugins.stream().flatMap(p -> p.getActionFilters().stream()).collect(Collectors.toSet()))
+        );
+    }
+
+    private ProtobufActionFilters setupProtobufActionFilters(List<ProtobufActionPlugin> actionPlugins) {
+        return new ProtobufActionFilters(
             Collections.unmodifiableSet(actionPlugins.stream().flatMap(p -> p.getActionFilters().stream()).collect(Collectors.toSet()))
         );
     }
@@ -1147,6 +1207,10 @@ public class ActionModule extends AbstractModule {
 
     public DynamicActionRegistry getDynamicActionRegistry() {
         return dynamicActionRegistry;
+    }
+
+    public ProtobufDynamicActionRegistry getProtobufDynamicActionRegistry() {
+        return protobufDynamicActionRegistry;
     }
 
     public RestController getRestController() {

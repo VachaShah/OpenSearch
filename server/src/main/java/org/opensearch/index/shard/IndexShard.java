@@ -145,6 +145,7 @@ import org.opensearch.index.mapper.Uid;
 import org.opensearch.index.merge.MergeStats;
 import org.opensearch.index.recovery.RecoveryStats;
 import org.opensearch.index.refresh.RefreshStats;
+import org.opensearch.index.remote.RemoteRefreshSegmentPressureService;
 import org.opensearch.index.search.stats.SearchStats;
 import org.opensearch.index.search.stats.ShardSearchStats;
 import org.opensearch.index.seqno.ReplicationTracker;

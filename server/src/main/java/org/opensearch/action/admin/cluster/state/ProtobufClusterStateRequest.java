@@ -13,8 +13,6 @@
 
 package org.opensearch.action.admin.cluster.state;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import org.opensearch.action.ActionRequestValidationException;
 import org.opensearch.action.IndicesRequest;
 import org.opensearch.action.support.IndicesOptions;

@@ -8,8 +8,7 @@
 
 package org.opensearch.action;
 
-import com.google.protobuf.CodedInputStream;
-import org.opensearch.common.io.stream.StreamInput;
+import org.opensearch.core.common.io.stream.StreamInput;
 import org.opensearch.common.io.stream.TryWriteable;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.TransportResponseHandler;

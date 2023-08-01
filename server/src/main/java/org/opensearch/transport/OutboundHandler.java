@@ -48,7 +48,7 @@ import org.opensearch.action.admin.cluster.state.ProtobufClusterStateRequest;
 import org.opensearch.action.admin.cluster.state.ProtobufClusterStateResponse;
 import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.common.CheckedSupplier;
-import org.opensearch.common.bytes.BytesReference;
+import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.common.io.stream.BytesStreamOutput;
 import org.opensearch.common.io.stream.ReleasableBytesStreamOutput;
 import org.opensearch.common.network.CloseableChannel;
@@ -58,6 +58,8 @@ import org.opensearch.common.util.BigArrays;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.io.IOUtils;
 import org.opensearch.threadpool.ThreadPool;
+import org.opensearch.common.lease.Releasable;
+import org.opensearch.common.lease.Releasables;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

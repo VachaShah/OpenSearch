@@ -32,14 +32,12 @@
 
 package org.opensearch.cluster.node;
 
-import com.carrotsearch.hppc.ObjectHashSet;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import org.opensearch.Version;
 import org.opensearch.cluster.AbstractDiffable;
 import org.opensearch.cluster.Diff;
 import org.opensearch.common.Booleans;
 import org.opensearch.common.Nullable;
+import org.opensearch.core.common.Strings;
 import org.opensearch.core.common.io.stream.StreamInput;
 import org.opensearch.core.common.io.stream.StreamOutput;
 import org.opensearch.common.regex.Regex;

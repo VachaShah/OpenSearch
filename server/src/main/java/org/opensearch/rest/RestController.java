@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.opensearch.OpenSearchException;
 import org.opensearch.client.node.NodeClient;
+import org.opensearch.client.node.ProtobufNodeClient;
 import org.opensearch.common.Nullable;
 import org.opensearch.common.breaker.CircuitBreaker;
 import org.opensearch.core.common.bytes.BytesArray;
@@ -110,7 +111,11 @@ public class RestController implements HttpServerTransport.Dispatcher {
 
     private final UnaryOperator<RestHandler> handlerWrapper;
 
+    private final UnaryOperator<ProtobufRestHandler> handlerProtobufWrapper;
+
     private final NodeClient client;
+
+    private final ProtobufNodeClient protobufClient;
 
     private final CircuitBreakerService circuitBreakerService;
 
@@ -133,10 +138,43 @@ public class RestController implements HttpServerTransport.Dispatcher {
             handlerWrapper = h -> h; // passthrough if no wrapper set
         }
         this.handlerWrapper = handlerWrapper;
+        this.handlerProtobufWrapper = null;
         this.client = client;
+        this.protobufClient = null;
         this.circuitBreakerService = circuitBreakerService;
         this.identityService = identityService;
         registerHandlerNoWrap(
+            RestRequest.Method.GET,
+            "/favicon.ico",
+            (request, channel, clnt) -> channel.sendResponse(new BytesRestResponse(RestStatus.OK, "image/x-icon", FAVICON_RESPONSE))
+        );
+    }
+
+    public RestController(
+        Set<RestHeaderDefinition> headersToCopy,
+        UnaryOperator<RestHandler> handlerWrapper,
+        NodeClient client,
+        UnaryOperator<ProtobufRestHandler> handlerProtobufWrapper,
+        ProtobufNodeClient protobufNodeClient,
+        CircuitBreakerService circuitBreakerService,
+        UsageService usageService,
+        IdentityService identityService
+    ) {
+        this.headersToCopy = headersToCopy;
+        this.usageService = usageService;
+        if (handlerProtobufWrapper == null) {
+            handlerProtobufWrapper = h -> h; // passthrough if no wrapper set
+        }
+        if (handlerWrapper == null) {
+            handlerWrapper = h -> h; // passthrough if no wrapper set
+        }
+        this.handlerProtobufWrapper = handlerProtobufWrapper;
+        this.protobufClient = protobufNodeClient;
+        this.client = client;
+        this.handlerWrapper = handlerWrapper;
+        this.circuitBreakerService = circuitBreakerService;
+        this.identityService = identityService;
+        registerProtobufHandlerNoWrap(
             RestRequest.Method.GET,
             "/favicon.ico",
             (request, channel, clnt) -> channel.sendResponse(new BytesRestResponse(RestStatus.OK, "image/x-icon", FAVICON_RESPONSE))
@@ -217,11 +255,26 @@ public class RestController implements HttpServerTransport.Dispatcher {
         registerHandlerNoWrap(method, path, handlerWrapper.apply(handler));
     }
 
+    protected void registerProtobufHandler(RestRequest.Method method, String path, ProtobufRestHandler handler) {
+        if (handler instanceof ProtobufBaseRestHandler) {
+            usageService.addProtobufRestHandler((ProtobufBaseRestHandler) handler);
+        }
+        registerProtobufHandlerNoWrap(method, path, handlerProtobufWrapper.apply(handler));
+    }
+
     private void registerHandlerNoWrap(RestRequest.Method method, String path, RestHandler maybeWrappedHandler) {
         handlers.insertOrUpdate(
             path,
             new MethodHandlers(path, maybeWrappedHandler, method),
             (mHandlers, newMHandler) -> mHandlers.addMethods(maybeWrappedHandler, method)
+        );
+    }
+
+    private void registerProtobufHandlerNoWrap(RestRequest.Method method, String path, ProtobufRestHandler maybeWrappedHandler) {
+        handlers.insertOrUpdate(
+            path,
+            new MethodHandlers(path, maybeWrappedHandler, method),
+            (mHandlers, newMHandler) -> mHandlers.addProtobufMethods(maybeWrappedHandler, method)
         );
     }
 
@@ -348,17 +401,17 @@ public class RestController implements HttpServerTransport.Dispatcher {
     private void dispatchProtobufRequest(RestRequest request, RestChannel channel, ProtobufRestHandler handler) throws Exception {
         final int contentLength = request.content().length();
         if (contentLength > 0) {
-            final XContentType xContentType = request.getXContentType();
-            if (xContentType == null) {
+            final MediaType mediaType = request.getMediaType();
+            if (mediaType == null) {
                 sendContentTypeErrorMessage(request.getAllHeaderValues("Content-Type"), channel);
                 return;
             }
-            if (handler.supportsContentStream() && xContentType != XContentType.JSON && xContentType != XContentType.SMILE) {
+            if (handler.supportsContentStream() && mediaType != XContentType.JSON && mediaType != XContentType.SMILE) {
                 channel.sendResponse(
                     BytesRestResponse.createSimpleErrorResponse(
                         channel,
                         RestStatus.NOT_ACCEPTABLE,
-                        "Content-Type [" + xContentType + "] does not support stream parsing. Use JSON or SMILE instead"
+                        "Content-Type [" + mediaType + "] does not support stream parsing. Use JSON or SMILE instead"
                     )
                 );
                 return;
@@ -463,6 +516,7 @@ public class RestController implements HttpServerTransport.Dispatcher {
                 final MethodHandlers handlers = allHandlers.next();
                 if (handlers == null) {
                     handler = null;
+                    protobufHandler = null;
                 } else {
                     if (rawPath.contains("protobuf")) {
                         handler = null;

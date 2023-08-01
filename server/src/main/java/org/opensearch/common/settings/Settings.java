@@ -32,7 +32,6 @@
 
 package org.opensearch.common.settings;
 
-import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import org.apache.logging.log4j.Level;
 import org.opensearch.OpenSearchGenerationException;
@@ -566,23 +565,6 @@ public final class Settings implements ToXContentFragment {
         for (int i = 0; i < numberOfSettings; i++) {
             String key = in.readString();
             Object value = in.readGenericValue();
-            if (value == null) {
-                builder.putNull(key);
-            } else if (value instanceof List) {
-                builder.putList(key, (List<String>) value);
-            } else {
-                builder.put(key, value.toString());
-            }
-        }
-        return builder.build();
-    }
-
-    public static Settings readSettingsFromStreamProtobuf(CodedInputStream in) throws IOException {
-        Builder builder = new Builder();
-        int numberOfSettings = in.readInt32();
-        for (int i = 0; i < numberOfSettings; i++) {
-            String key = in.readString();
-            Object value = in.readString();
             if (value == null) {
                 builder.putNull(key);
             } else if (value instanceof List) {

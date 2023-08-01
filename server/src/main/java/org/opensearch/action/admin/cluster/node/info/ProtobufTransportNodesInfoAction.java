@@ -8,9 +8,6 @@
 
 package org.opensearch.action.admin.cluster.node.info;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-
 import org.opensearch.action.FailedNodeException;
 import org.opensearch.action.support.ProtobufActionFilters;
 import org.opensearch.action.support.nodes.ProtobufTransportNodesAction;

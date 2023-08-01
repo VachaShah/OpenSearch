@@ -45,14 +45,12 @@ import org.opensearch.action.admin.cluster.node.stats.ProtobufNodesStatsRequest;
 import org.opensearch.action.admin.cluster.node.stats.ProtobufTransportNodesStatsAction.NodeStatsRequest;
 import org.opensearch.action.admin.cluster.state.ProtobufClusterStateRequest;
 import org.opensearch.action.admin.cluster.state.ProtobufClusterStateResponse;
-import org.opensearch.common.bytes.BytesReference;
-import org.opensearch.common.bytes.ReleasableBytesReference;
+import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.common.collect.Tuple;
-import org.opensearch.common.io.stream.ByteBufferStreamInput;
-import org.opensearch.common.io.stream.NamedWriteableAwareStreamInput;
-import org.opensearch.common.io.stream.NamedWriteableRegistry;
-import org.opensearch.common.io.stream.StreamInput;
-import org.opensearch.common.lease.Releasable;
+import org.opensearch.core.common.io.stream.ByteBufferStreamInput;
+import org.opensearch.core.common.io.stream.NamedWriteableAwareStreamInput;
+import org.opensearch.core.common.io.stream.NamedWriteableRegistry;
+import org.opensearch.core.common.io.stream.StreamInput;
 import org.opensearch.common.transport.TransportAddress;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.util.concurrent.AbstractRunnable;
@@ -67,8 +65,6 @@ import org.opensearch.server.proto.OutboundMessageProto.OutboundMsg;
 import org.opensearch.threadpool.ThreadPool;
 
 import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;

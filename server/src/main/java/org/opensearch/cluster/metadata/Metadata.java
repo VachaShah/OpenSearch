@@ -92,7 +92,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.opensearch.common.settings.Settings.readSettingsFromStream;
-import static org.opensearch.common.settings.Settings.readSettingsFromStreamProtobuf;
 import static org.opensearch.common.settings.Settings.writeSettingsToStream;
 
 /**
@@ -1060,31 +1059,6 @@ public class Metadata implements Iterable<IndexMetadata>, Diffable<Metadata>, To
             Custom customIndexMetadata = in.readNamedWriteable(Custom.class);
             builder.putCustom(customIndexMetadata.getWriteableName(), customIndexMetadata);
         }
-        return builder.build();
-    }
-
-    public static Metadata readFrom(CodedInputStream in) throws IOException {
-        Builder builder = new Builder();
-        builder.version = in.readInt64();
-        builder.clusterUUID = in.readString();
-        builder.clusterUUIDCommitted = in.readBool();
-        // builder.coordinationMetadata(new CoordinationMetadata(in));
-        builder.transientSettings(readSettingsFromStreamProtobuf(in));
-        builder.persistentSettings(readSettingsFromStreamProtobuf(in));
-        // builder.hashesOfConsistentSettings(DiffableStringMap.readFrom(in));
-        int size = in.readInt32();
-        // for (int i = 0; i < size; i++) {
-        // builder.put(IndexMetadata.readFrom(in), false);
-        // }
-        size = in.readInt32();
-        // for (int i = 0; i < size; i++) {
-        // builder.put(IndexTemplateMetadata.readFrom(in));
-        // }
-        int customSize = in.readInt32();
-        // for (int i = 0; i < customSize; i++) {
-        // Custom customIndexMetadata = in.readNamedWriteable(Custom.class);
-        // builder.putCustom(customIndexMetadata.getWriteableName(), customIndexMetadata);
-        // }
         return builder.build();
     }
 

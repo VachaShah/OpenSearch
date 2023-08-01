@@ -32,8 +32,6 @@
 
 package org.opensearch;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import org.opensearch.common.Booleans;
 import org.opensearch.core.util.FileSystemUtils;
 

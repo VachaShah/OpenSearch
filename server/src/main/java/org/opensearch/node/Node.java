@@ -78,17 +78,21 @@ import org.opensearch.OpenSearchTimeoutException;
 import org.opensearch.Version;
 import org.opensearch.action.ActionModule;
 import org.opensearch.action.ActionModule.DynamicActionRegistry;
+import org.opensearch.action.ActionModule.ProtobufDynamicActionRegistry;
 import org.opensearch.action.ActionType;
+import org.opensearch.action.ProtobufActionType;
 import org.opensearch.action.admin.cluster.snapshots.status.TransportNodesSnapshotsStatus;
 import org.opensearch.action.search.SearchExecutionStatsCollector;
 import org.opensearch.action.search.SearchPhaseController;
 import org.opensearch.action.search.SearchTransportService;
+import org.opensearch.action.support.ProtobufTransportAction;
 import org.opensearch.action.support.TransportAction;
 import org.opensearch.action.update.UpdateHelper;
 import org.opensearch.bootstrap.BootstrapCheck;
 import org.opensearch.bootstrap.BootstrapContext;
 import org.opensearch.client.Client;
 import org.opensearch.client.node.NodeClient;
+import org.opensearch.client.node.ProtobufNodeClient;
 import org.opensearch.cluster.ClusterInfoService;
 import org.opensearch.cluster.ClusterModule;
 import org.opensearch.cluster.ClusterName;
@@ -379,6 +383,7 @@ public class Node implements Closeable {
     private final PluginsService pluginsService;
     private final ExtensionsManager extensionsManager;
     private final NodeClient client;
+    private final ProtobufNodeClient protobufClient;
     private final Collection<LifecycleComponent> pluginLifecycleComponents;
     private final LocalNodeFactory localNodeFactory;
     private final NodeService nodeService;
@@ -834,9 +839,9 @@ public class Node implements Closeable {
                 identityService,
                 extensionsManager
             );
-            modules.add(actionModule);
+            modules.add(protobufActionModule);
 
-            final RestController restController = actionModule.getRestController();
+            final RestController restController = protobufActionModule.getRestController();
 
             final NetworkModule networkModule = new NetworkModule(
                 settings,
@@ -941,7 +946,7 @@ public class Node implements Closeable {
                 clusterModule.getIndexNameExpressionResolver(),
                 repositoryService,
                 transportService,
-                actionModule.getActionFilters()
+                protobufActionModule.getActionFilters()
             );
             SnapshotShardsService snapshotShardsService = new SnapshotShardsService(
                 settings,
@@ -955,7 +960,7 @@ public class Node implements Closeable {
                 clusterService,
                 transportService,
                 snapshotShardsService,
-                actionModule.getActionFilters()
+                protobufActionModule.getActionFilters()
             );
             RestoreService restoreService = new RestoreService(
                 clusterService,
@@ -1190,7 +1195,7 @@ public class Node implements Closeable {
             resourcesToClose.addAll(pluginLifecycleComponents);
             resourcesToClose.add(injector.getInstance(PeerRecoverySourceService.class));
             this.pluginLifecycleComponents = Collections.unmodifiableList(pluginLifecycleComponents);
-            DynamicActionRegistry dynamicActionRegistry = actionModule.getDynamicActionRegistry();
+            DynamicActionRegistry dynamicActionRegistry = protobufActionModule.getDynamicActionRegistry();
             dynamicActionRegistry.registerUnmodifiableActionMap(injector.getInstance(new Key<Map<ActionType, TransportAction>>() {
             }));
             client.initialize(
@@ -1214,7 +1219,7 @@ public class Node implements Closeable {
             );
 
             logger.debug("initializing HTTP handlers ...");
-            actionModule.initRestHandlers(() -> clusterService.state().nodes());
+            protobufActionModule.initRestHandlers(() -> clusterService.state().nodes());
             logger.info("initialized");
 
             success = true;

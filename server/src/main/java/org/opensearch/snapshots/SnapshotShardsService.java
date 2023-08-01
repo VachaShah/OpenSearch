@@ -32,9 +32,6 @@
 
 package org.opensearch.snapshots;
 
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.protobuf.CodedInputStream;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;

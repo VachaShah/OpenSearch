@@ -32,9 +32,6 @@
 
 package org.opensearch.cluster;
 
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-
 import org.opensearch.cluster.block.ClusterBlock;
 import org.opensearch.cluster.block.ClusterBlocks;
 import org.opensearch.cluster.coordination.CoordinationMetadata;
@@ -54,11 +51,11 @@ import org.opensearch.cluster.service.ClusterService;
 import org.opensearch.common.UUIDs;
 import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.common.io.stream.BytesStreamOutput;
-import org.opensearch.common.io.stream.NamedWriteableAwareStreamInput;
-import org.opensearch.common.io.stream.NamedWriteableRegistry;
-import org.opensearch.common.io.stream.StreamInput;
-import org.opensearch.common.io.stream.StreamOutput;
-import org.opensearch.common.io.stream.VersionedNamedWriteable;
+import org.opensearch.core.common.io.stream.NamedWriteableAwareStreamInput;
+import org.opensearch.core.common.io.stream.NamedWriteableRegistry;
+import org.opensearch.core.common.io.stream.StreamInput;
+import org.opensearch.core.common.io.stream.StreamOutput;
+import org.opensearch.core.common.io.stream.VersionedNamedWriteable;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.core.common.Strings;
 import org.opensearch.core.xcontent.ToXContentFragment;

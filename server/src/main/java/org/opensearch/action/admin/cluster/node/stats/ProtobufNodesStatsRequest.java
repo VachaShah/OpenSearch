@@ -8,8 +8,6 @@
 
 package org.opensearch.action.admin.cluster.node.stats;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import org.opensearch.action.admin.indices.stats.CommonStatsFlags;
 import org.opensearch.action.support.nodes.ProtobufBaseNodesRequest;
 import org.opensearch.common.io.stream.TryWriteable;

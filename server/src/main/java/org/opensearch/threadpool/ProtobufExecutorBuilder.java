@@ -68,7 +68,7 @@ public abstract class ProtobufExecutorBuilder<U extends ProtobufExecutorBuilder.
     * @param threadContext the current thread context
     * @return a new executor built from the specified executor settings
     */
-    abstract ProtobufThreadPool.ExecutorHolder build(U settings, ThreadContext threadContext);
+    abstract ThreadPool.ExecutorHolder build(U settings, ThreadContext threadContext);
 
     /**
      * Format the thread pool info object for this executor.
@@ -76,7 +76,7 @@ public abstract class ProtobufExecutorBuilder<U extends ProtobufExecutorBuilder.
     * @param info the thread pool info object to format
     * @return a formatted thread pool info (useful for logging)
     */
-    abstract String formatInfo(ProtobufThreadPool.Info info);
+    abstract String formatInfo(ThreadPool.Info info);
 
     abstract static class ExecutorSettings {
 

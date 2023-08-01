@@ -61,6 +61,7 @@ import org.opensearch.monitor.NodeHealthService;
 import org.opensearch.monitor.StatusInfo;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.threadpool.ThreadPool.Names;
+import org.opensearch.transport.BytesTransportRequest;
 import org.opensearch.transport.RemoteTransportException;
 import org.opensearch.transport.TransportChannel;
 import org.opensearch.transport.TransportException;
@@ -70,8 +71,6 @@ import org.opensearch.transport.TransportResponse;
 import org.opensearch.transport.TransportResponse.Empty;
 import org.opensearch.transport.TransportResponseHandler;
 import org.opensearch.transport.TransportService;
-
-import com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
 import java.util.Collection;

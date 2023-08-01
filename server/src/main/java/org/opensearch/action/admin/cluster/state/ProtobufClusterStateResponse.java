@@ -18,7 +18,6 @@ import org.opensearch.cluster.ClusterState;
 import org.opensearch.cluster.node.DiscoveryNode;
 import org.opensearch.cluster.node.DiscoveryNodes;
 import org.opensearch.cluster.ClusterName;
-import org.opensearch.common.collect.ImmutableOpenMap;
 import org.opensearch.common.io.stream.TryWriteable;
 import org.opensearch.server.proto.ClusterStateResponseProto;
 import org.opensearch.server.proto.ClusterStateResponseProto.ClusterStateRes;
@@ -97,16 +96,14 @@ public class ProtobufClusterStateResponse extends ProtobufActionResponse impleme
         System.out.println("Time taken to build protobuf response: " + (endTime - startTime) + " ns");
     }
 
-    private Map<String, ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node> convertNodes(ImmutableOpenMap<String, DiscoveryNode> nodes) {
+    private Map<String, ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node> convertNodes(Map<String, DiscoveryNode> nodes) {
         Map<String, ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node> convertedNodes = new HashMap<>();
         if (nodes.isEmpty()) {
             return convertedNodes;
         }
         long startTime = System.nanoTime();
-        Iterator<String> keysIt = nodes.keysIt();
-        while(keysIt.hasNext()) {
-            String key = keysIt.next();
-            DiscoveryNode node = nodes.get(key);
+        for (Map.Entry<String, DiscoveryNode> entry : nodes.entrySet()) {
+            DiscoveryNode node = entry.getValue();
             List<ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node.NodeRole> nodeRoles = new ArrayList<>();
             node.getRoles().forEach(role -> {
                 ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node.NodeRole.Builder nodeRoleBuilder = ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node.NodeRole.newBuilder();
@@ -116,7 +113,7 @@ public class ProtobufClusterStateResponse extends ProtobufActionResponse impleme
             ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node.Builder nodeBuilder = ClusterStateResponseProto.ClusterStateRes.ClusterState.DiscoveryNodes.Node.newBuilder();
             nodeBuilder.setNodeName(node.getName()).setNodeId(node.getId()).setEphemeralId(node.getEphemeralId()).setHostName(node.getHostName())
             .setHostAddress(node.getHostAddress()).setTransportAddress(node.getAddress().toString()).putAllAttributes(node.getAttributes()).addAllRoles(nodeRoles).setVersion(node.getVersion().toString()).build();
-            convertedNodes.put(key, nodeBuilder.build());
+            convertedNodes.put(entry.getKey(), nodeBuilder.build());
         }
         long endTime = System.nanoTime();
         System.out.println("Time taken to convert nodes in method: " + (endTime - startTime) + " ns");

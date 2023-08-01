@@ -39,7 +39,7 @@ public class ProtobufActionType<Response extends ProtobufActionResponse> {
     }
 
     /**
-     * Get a reader that can create a new instance of the class from a {@link org.opensearch.common.io.stream.StreamInput}
+     * Get a reader that can create a new instance of the class from a {@link byte[]}
     */
     public TryWriteable.Reader<Response> getResponseReaderTry() {
         return responseReader;

@@ -8,8 +8,6 @@
 
 package org.opensearch.action.admin.cluster.node.stats;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.opensearch.action.support.nodes.ProtobufBaseNodeResponse;

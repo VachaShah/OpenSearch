@@ -11,17 +11,15 @@
 
 package org.opensearch.tasks;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import org.opensearch.OpenSearchException;
 import org.opensearch.client.Requests;
 import org.opensearch.common.Nullable;
-import org.opensearch.common.bytes.BytesReference;
+import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.common.io.stream.ProtobufWriteable;
+import org.opensearch.core.xcontent.MediaTypeRegistry;
 import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.ToXContentObject;
 import org.opensearch.core.xcontent.XContentBuilder;
-import org.opensearch.common.xcontent.XContentFactory;
 import org.opensearch.common.xcontent.XContentHelper;
 
 import java.io.IOException;
@@ -146,7 +144,7 @@ public final class ProtobufTaskResult implements ProtobufWriteable, ToXContentOb
     }
 
     private static BytesReference toXContent(Exception error) throws IOException {
-        try (XContentBuilder builder = XContentFactory.contentBuilder(Requests.INDEX_CONTENT_TYPE)) {
+        try (XContentBuilder builder = MediaTypeRegistry.contentBuilder(Requests.INDEX_CONTENT_TYPE)) {
             builder.startObject();
             OpenSearchException.generateThrowableXContent(builder, ToXContent.EMPTY_PARAMS, error);
             builder.endObject();

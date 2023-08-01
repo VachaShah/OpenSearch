@@ -42,6 +42,7 @@ import org.opensearch.OpenSearchTimeoutException;
 import org.opensearch.action.ActionListener;
 import org.opensearch.action.ActionResponse;
 import org.opensearch.action.NotifyOnceListener;
+import org.opensearch.action.ProtobufActionResponse;
 import org.opensearch.cluster.ClusterChangedEvent;
 import org.opensearch.cluster.ClusterStateApplier;
 import org.opensearch.cluster.node.DiscoveryNode;
@@ -78,6 +79,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.opensearch.common.unit.TimeValue.timeValueMillis;
 import static org.opensearch.http.HttpTransportSettings.SETTING_HTTP_MAX_HEADER_SIZE;
@@ -109,16 +111,21 @@ public class TaskManager implements ClusterStateApplier {
     private final ThreadPool threadPool;
 
     private final ConcurrentMapLong<Task> tasks = ConcurrentCollections.newConcurrentMapLongWithAggressiveConcurrency();
+    private final ConcurrentMapLong<ProtobufTask> protobufTasks = ConcurrentCollections.newConcurrentMapLongWithAggressiveConcurrency();
 
     private final ConcurrentMapLong<CancellableTaskHolder> cancellableTasks = ConcurrentCollections
+        .newConcurrentMapLongWithAggressiveConcurrency();
+    private final ConcurrentMapLong<ProtobufCancellableTaskHolder> protobufCancellableTasks = ConcurrentCollections
         .newConcurrentMapLongWithAggressiveConcurrency();
 
     private final AtomicLong taskIdGenerator = new AtomicLong();
 
     private final Map<TaskId, String> banedParents = new ConcurrentHashMap<>();
+    private final Map<ProtobufTaskId, String> banedParentsProtobuf = new ConcurrentHashMap<>();
 
     private TaskResultsService taskResultsService;
     private final SetOnce<TaskResourceTrackingService> taskResourceTrackingService = new SetOnce<>();
+    private final SetOnce<ProtobufTaskResourceTrackingService> protobufTaskResourceTrackingService = new SetOnce<>();
 
     private volatile DiscoveryNodes lastDiscoveryNodes = DiscoveryNodes.EMPTY_NODES;
 
@@ -127,9 +134,11 @@ public class TaskManager implements ClusterStateApplier {
     private final Map<TcpChannel, ProtobufChannelPendingTaskTracker> protobufChannelPendingTaskTrackers = ConcurrentCollections
         .newConcurrentMap();
     private final SetOnce<TaskCancellationService> cancellationService = new SetOnce<>();
+    private final SetOnce<ProtobufTaskCancellationService> protobufCancellationService = new SetOnce<>();
 
     private volatile boolean taskResourceConsumersEnabled;
     private final Set<Consumer<Task>> taskResourceConsumer;
+    private final Set<Consumer<ProtobufTask>> protobufTaskResourceConsumer;
     private final List<TaskEventListeners> taskEventListeners = new ArrayList<>();
 
     public static TaskManager createTaskManagerWithClusterSettings(
@@ -149,6 +158,7 @@ public class TaskManager implements ClusterStateApplier {
         this.maxHeaderSize = SETTING_HTTP_MAX_HEADER_SIZE.get(settings);
         this.taskResourceConsumersEnabled = TASK_RESOURCE_CONSUMERS_ENABLED.get(settings);
         taskResourceConsumer = new HashSet<>();
+        protobufTaskResourceConsumer = new HashSet<>();
     }
 
     /**
@@ -372,6 +382,23 @@ public class TaskManager implements ClusterStateApplier {
     }
 
     /**
+     * Cancels a task
+    * <p>
+    * After starting cancellation on the parent task, the task manager tries to cancel all children tasks
+    * of the current task. Once cancellation of the children tasks is done, the listener is triggered.
+    * If the task is completed or unregistered from ProtobufTaskManager, then the listener is called immediately.
+    */
+    public void cancelProtobufTask(ProtobufCancellableTask task, String reason, Runnable listener) {
+        CancellableTaskHolder holder = cancellableTasks.get(task.getId());
+        if (holder != null) {
+            logger.trace("cancelling task with id {}", task.getId());
+            holder.cancel(reason, listener);
+        } else {
+            listener.run();
+        }
+    }
+
+    /**
      * Unregister the task
      */
     public Task unregister(Task task) {
@@ -409,6 +436,38 @@ public class TaskManager implements ClusterStateApplier {
             }
         } else {
             return tasks.remove(task.getId());
+        }
+    }
+
+    /**
+     * Unregister the task
+    */
+    public ProtobufTask unregisterProtobufTask(ProtobufTask task) {
+        logger.trace("unregister task for id: {}", task.getId());
+
+        // Decrement the task's self-thread as part of unregistration.
+        task.decrementResourceTrackingThreads();
+
+        if (taskResourceConsumersEnabled) {
+            for (Consumer<ProtobufTask> taskConsumer : protobufTaskResourceConsumer) {
+                try {
+                    taskConsumer.accept(task);
+                } catch (Exception e) {
+                    logger.error("error encountered when updating the consumer", e);
+                }
+            }
+        }
+
+        if (task instanceof ProtobufCancellableTask) {
+            ProtobufCancellableTaskHolder holder = protobufCancellableTasks.remove(task.getId());
+            if (holder != null) {
+                holder.finish();
+                return holder.getTask();
+            } else {
+                return null;
+            }
+        } else {
+            return protobufTasks.remove(task.getId());
         }
     }
 
@@ -837,6 +896,18 @@ public class TaskManager implements ClusterStateApplier {
         return taskResourceTrackingService.get().startTracking(task);
     }
 
+    /**
+     * Takes actions when a task is registered and its execution starts
+    *
+    * @param task getting executed.
+    * @return AutoCloseable to free up resources (clean up thread context) when task execution block returns
+    */
+    public ThreadContext.StoredContext protobufTaskExecutionStarted(ProtobufTask task) {
+        if (protobufTaskResourceTrackingService.get() == null) return () -> {};
+
+        return protobufTaskResourceTrackingService.get().startTracking(task);
+    }
+
     private static class CancellableTaskHolder {
         private final CancellableTask task;
         private boolean finished = false;
@@ -974,7 +1045,7 @@ public class TaskManager implements ClusterStateApplier {
         private final ProtobufCancellableTask task;
         private boolean finished = false;
         private List<Runnable> cancellationListeners = null;
-        private ObjectIntMap<DiscoveryNode> childTasksPerNode = null;
+        private Map<DiscoveryNode, Integer> childTasksPerNode = null;
         private boolean banChildren = false;
         private List<Runnable> childTaskCompletedListeners = null;
 
@@ -1056,15 +1127,15 @@ public class TaskManager implements ClusterStateApplier {
                 throw new TaskCancelledException("The parent task was cancelled, shouldn't start any child tasks");
             }
             if (childTasksPerNode == null) {
-                childTasksPerNode = new ObjectIntHashMap<>();
+                childTasksPerNode = new HashMap<>();
             }
-            childTasksPerNode.addTo(node, 1);
+            childTasksPerNode.merge(node, 1, Integer::sum);
         }
 
         void unregisterChildNode(DiscoveryNode node) {
             final List<Runnable> listeners;
             synchronized (this) {
-                if (childTasksPerNode.addTo(node, -1) == 0) {
+                if (childTasksPerNode.merge(node, -1, Integer::sum) == 0) {
                     childTasksPerNode.remove(node);
                 }
                 if (childTasksPerNode.isEmpty() && this.childTaskCompletedListeners != null) {
@@ -1085,9 +1156,7 @@ public class TaskManager implements ClusterStateApplier {
                 if (childTasksPerNode == null) {
                     pendingChildNodes = Collections.emptySet();
                 } else {
-                    pendingChildNodes = StreamSupport.stream(childTasksPerNode.spliterator(), false)
-                        .map(e -> e.key)
-                        .collect(Collectors.toSet());
+                    pendingChildNodes = Set.copyOf(childTasksPerNode.keySet());
                 }
                 if (pendingChildNodes.isEmpty()) {
                     assert childTaskCompletedListeners == null;
@@ -1193,6 +1262,102 @@ public class TaskManager implements ClusterStateApplier {
         } else {
             assert false : "TaskCancellationService is not initialized";
             throw new IllegalStateException("TaskCancellationService is not initialized");
+        }
+    }
+
+    /**
+     * Start tracking a cancellable task with its tcp channel, so if the channel gets closed we can get a set of
+    * pending tasks associated that channel and cancel them as these results won't be retrieved by the parent task.
+    *
+    * @return a releasable that should be called when this pending task is completed
+    */
+    public Releasable startProtobufTrackingCancellableChannelTask(TcpChannel channel, ProtobufCancellableTask task) {
+        assert protobufCancellableTasks.containsKey(task.getId()) : "task [" + task.getId() + "] is not registered yet";
+        final ProtobufChannelPendingTaskTracker tracker = protobufChannelPendingTaskTrackers.compute(channel, (k, curr) -> {
+            if (curr == null) {
+                curr = new ProtobufChannelPendingTaskTracker();
+            }
+            curr.addTask(task);
+            return curr;
+        });
+        if (tracker.registered.compareAndSet(false, true)) {
+            channel.addCloseListener(ActionListener.wrap(r -> {
+                final ProtobufChannelPendingTaskTracker removedTracker = protobufChannelPendingTaskTrackers.remove(channel);
+                assert removedTracker == tracker;
+                cancelProtobufTasksOnChannelClosed(tracker.drainTasks());
+            }, e -> { assert false : new AssertionError("must not be here", e); }));
+        }
+        return () -> tracker.removeTask(task);
+    }
+
+    // for testing
+    final int numberOfProtobufChannelPendingTaskTrackers() {
+        return protobufChannelPendingTaskTrackers.size();
+    }
+
+    private static class ProtobufChannelPendingTaskTracker {
+        final AtomicBoolean registered = new AtomicBoolean();
+        final Semaphore permits = Assertions.ENABLED ? new Semaphore(Integer.MAX_VALUE) : null;
+        final Set<ProtobufCancellableTask> pendingTasks = ConcurrentCollections.newConcurrentSet();
+
+        void addTask(ProtobufCancellableTask task) {
+            assert permits.tryAcquire() : "tracker was drained";
+            final boolean added = pendingTasks.add(task);
+            assert added : "task " + task.getId() + " is in the pending list already";
+            assert releasePermit();
+        }
+
+        boolean acquireAllPermits() {
+            permits.acquireUninterruptibly(Integer.MAX_VALUE);
+            return true;
+        }
+
+        boolean releasePermit() {
+            permits.release();
+            return true;
+        }
+
+        Set<ProtobufCancellableTask> drainTasks() {
+            assert acquireAllPermits(); // do not release permits so we can't add tasks to this tracker after draining
+            return Collections.unmodifiableSet(pendingTasks);
+        }
+
+        void removeTask(ProtobufCancellableTask task) {
+            final boolean removed = pendingTasks.remove(task);
+            assert removed : "task " + task.getId() + " is not in the pending list";
+        }
+    }
+
+    private void cancelProtobufTasksOnChannelClosed(Set<ProtobufCancellableTask> tasks) {
+        if (tasks.isEmpty() == false) {
+            threadPool.generic().execute(new AbstractRunnable() {
+                @Override
+                public void onFailure(Exception e) {
+                    logger.warn("failed to cancel tasks on channel closed", e);
+                }
+
+                @Override
+                protected void doRun() {
+                    for (ProtobufCancellableTask task : tasks) {
+                        cancelProtobufTaskAndDescendants(task, "channel was closed", false, ActionListener.wrap(() -> {}));
+                    }
+                }
+            });
+        }
+    }
+
+    public void cancelProtobufTaskAndDescendants(
+        ProtobufCancellableTask task,
+        String reason,
+        boolean waitForCompletion,
+        ActionListener<Void> listener
+    ) {
+        final ProtobufTaskCancellationService service = protobufCancellationService.get();
+        if (service != null) {
+            service.cancelTaskAndDescendants(task, reason, waitForCompletion, listener);
+        } else {
+            assert false : "ProtobufTaskCancellationService is not initialized";
+            throw new IllegalStateException("ProtobufTaskCancellationService is not initialized");
         }
     }
 }

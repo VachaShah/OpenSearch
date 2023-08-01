@@ -43,10 +43,10 @@ public abstract class ProtobufAbstractClient implements ProtobufClient {
     protected final Logger logger;
 
     protected final Settings settings;
-    private final ProtobufThreadPool threadPool;
+    private final ThreadPool threadPool;
     private final Admin admin;
 
-    public ProtobufAbstractClient(Settings settings, ProtobufThreadPool threadPool) {
+    public ProtobufAbstractClient(Settings settings, ThreadPool threadPool) {
         this.settings = settings;
         this.threadPool = threadPool;
         this.admin = new Admin(this);
@@ -59,7 +59,7 @@ public abstract class ProtobufAbstractClient implements ProtobufClient {
     }
 
     @Override
-    public final ProtobufThreadPool threadPool() {
+    public final ThreadPool threadPool() {
         return this.threadPool;
     }
 
@@ -119,7 +119,7 @@ public abstract class ProtobufAbstractClient implements ProtobufClient {
         }
 
         @Override
-        public ProtobufThreadPool threadPool() {
+        public ThreadPool threadPool() {
             return client.threadPool();
         }
 
