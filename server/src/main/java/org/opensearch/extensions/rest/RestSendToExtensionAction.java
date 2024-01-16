@@ -236,6 +236,12 @@ public class RestSendToExtensionAction extends BaseRestHandler {
             public String executor() {
                 return ThreadPool.Names.GENERIC;
             }
+
+            @Override
+            public RestExecuteOnExtensionResponse read(byte[] in) throws IOException {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'read'");
+            }
         };
 
         try {

@@ -32,6 +32,7 @@
 
 package org.opensearch.transport;
 
+import org.opensearch.core.common.io.stream.ProtobufWriteable;
 import org.opensearch.core.common.io.stream.StreamInput;
 import org.opensearch.core.common.io.stream.Writeable;
 import org.opensearch.core.transport.TransportResponse;
@@ -44,7 +45,7 @@ import java.util.function.Function;
  *
  * @opensearch.internal
  */
-public interface TransportResponseHandler<T extends TransportResponse> extends Writeable.Reader<T> {
+public interface TransportResponseHandler<T extends TransportResponse> extends Writeable.Reader<T>, ProtobufWriteable.Reader<T> {
 
     void handleResponse(T response);
 
@@ -80,6 +81,12 @@ public interface TransportResponseHandler<T extends TransportResponse> extends W
             @Override
             public Q read(StreamInput in) throws IOException {
                 return reader.read(in);
+            }
+
+            @Override
+            public Q read(byte[] in) throws IOException {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'read'");
             }
         };
     }
