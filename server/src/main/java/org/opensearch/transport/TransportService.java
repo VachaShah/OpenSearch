@@ -1506,8 +1506,7 @@ public class TransportService extends AbstractLifecycleComponent
 
         @Override
         public T read(byte[] in) throws IOException {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'read'");
+            return delegate.read(in);
         }
 
     }
@@ -1726,8 +1725,7 @@ public class TransportService extends AbstractLifecycleComponent
 
                     @Override
                     public T read(byte[] in) throws IOException {
-                        // TODO Auto-generated method stub
-                        throw new UnsupportedOperationException("Unimplemented method 'read'");
+                        return handler.read(in);
                     }
                 };
             } else {
