@@ -53,7 +53,7 @@ public class InboundMessage implements Releasable, BaseInboundMessage {
     private final boolean isPing;
     private Releasable breakerRelease;
     private StreamInput streamInput;
-    private Protocol protocol;
+    private String protocol;
 
     public InboundMessage(Header header, ReleasableBytesReference content, Releasable breakerRelease) {
         this.header = header;
@@ -134,12 +134,12 @@ public class InboundMessage implements Releasable, BaseInboundMessage {
     }
 
     @Override
-    public Protocol getProtocol() {
-        return Protocol.DEFAULT;
+    public String getProtocol() {
+        return NATIVE_PROTOCOL;
     }
 
     @Override
     public void setProtocol() {
-        this.protocol = Protocol.DEFAULT;
+        this.protocol = NATIVE_PROTOCOL;
     }
 }
