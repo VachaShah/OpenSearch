@@ -46,7 +46,7 @@ import java.util.function.Function;
  *
  * @opensearch.internal
  */
-public interface TransportResponseHandler<T extends TransportResponse> extends Writeable.Reader<T>, BytesWriteable.Reader<T> {
+public interface TransportResponseHandler<T extends TransportResponse> extends Writeable.Reader<T>, BytesWriteable.Reader<InputStream, T> {
 
     void handleResponse(T response);
 

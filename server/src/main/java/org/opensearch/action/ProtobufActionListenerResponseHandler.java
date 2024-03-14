@@ -29,12 +29,12 @@ import java.util.Objects;
 public class ProtobufActionListenerResponseHandler<Response extends TransportResponse> implements TransportResponseHandler<Response> {
 
     private final ActionListener<? super Response> listener;
-    private final BytesWriteable.Reader<Response> reader;
+    private final BytesWriteable.Reader<InputStream, Response> reader;
     private final String executor;
 
     public ProtobufActionListenerResponseHandler(
         ActionListener<? super Response> listener,
-        BytesWriteable.Reader<Response> reader,
+        BytesWriteable.Reader<InputStream, Response> reader,
         String executor
     ) {
         this.listener = Objects.requireNonNull(listener);
@@ -42,7 +42,10 @@ public class ProtobufActionListenerResponseHandler<Response extends TransportRes
         this.executor = Objects.requireNonNull(executor);
     }
 
-    public ProtobufActionListenerResponseHandler(ActionListener<? super Response> listener, BytesWriteable.Reader<Response> reader) {
+    public ProtobufActionListenerResponseHandler(
+        ActionListener<? super Response> listener,
+        BytesWriteable.Reader<InputStream, Response> reader
+    ) {
         this(listener, reader, ThreadPool.Names.SAME);
     }
 
@@ -68,7 +71,6 @@ public class ProtobufActionListenerResponseHandler<Response extends TransportRes
 
     @Override
     public Response read(StreamInput in) throws IOException {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'read'");
     }
 

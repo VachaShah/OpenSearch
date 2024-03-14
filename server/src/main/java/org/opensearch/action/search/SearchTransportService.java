@@ -74,6 +74,7 @@ import org.opensearch.transport.TransportResponseHandler;
 import org.opensearch.transport.TransportService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -248,7 +249,9 @@ public class SearchTransportService {
         final ActionListener handler = responseWrapper.apply(connection, listener);
         TransportResponseHandler transportResponseHandler;
         if (FeatureFlags.isEnabled(FeatureFlags.PROTOBUF_SETTING)) {
-            BytesWriteable.Reader<SearchPhaseResult> reader = fetchDocuments ? QueryFetchSearchResult::new : QuerySearchResult::new;
+            BytesWriteable.Reader<InputStream, SearchPhaseResult> reader = fetchDocuments
+                ? QueryFetchSearchResult::new
+                : QuerySearchResult::new;
             transportResponseHandler = new ProtobufConnectionCountingHandler<>(
                 handler,
                 reader,
@@ -797,7 +800,7 @@ public class SearchTransportService {
 
         ProtobufConnectionCountingHandler(
             final ActionListener<? super Response> listener,
-            final BytesWriteable.Reader<Response> responseReader,
+            final BytesWriteable.Reader<InputStream, Response> responseReader,
             final Map<String, Long> clientConnections,
             final String nodeId
         ) {
