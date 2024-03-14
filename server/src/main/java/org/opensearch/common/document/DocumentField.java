@@ -78,7 +78,7 @@ public class DocumentField implements Writeable, ToXContentFragment, Iterable<Ob
 
     private final String name;
     private final List<Object> values;
-    private FetchSearchResultProto.SearchHit.DocumentField documentField;
+    // private FetchSearchResultProto.SearchHit.DocumentField documentField;
 
     public DocumentField(StreamInput in) throws IOException {
         name = in.readString();
@@ -90,15 +90,15 @@ public class DocumentField implements Writeable, ToXContentFragment, Iterable<Ob
         this.values = Objects.requireNonNull(values, "values must not be null");
     }
 
-    public DocumentField(byte[] in) throws IOException {
-        assert FeatureFlags.isEnabled(FeatureFlags.PROTOBUF) : "protobuf feature flag is not enabled";
-        documentField = FetchSearchResultProto.SearchHit.DocumentField.parseFrom(in);
-        name = documentField.getName();
-        values = new ArrayList<>();
-        for (FetchSearchResultProto.DocumentFieldValue value : documentField.getValuesList()) {
-            values.add(readDocumentFieldValueFromProtobuf(value));
-        }
-    }
+    // public DocumentField(byte[] in) throws IOException {
+    //     assert FeatureFlags.isEnabled(FeatureFlags.PROTOBUF) : "protobuf feature flag is not enabled";
+    //     documentField = FetchSearchResultProto.SearchHit.DocumentField.parseFrom(in);
+    //     name = documentField.getName();
+    //     values = new ArrayList<>();
+    //     for (FetchSearchResultProto.DocumentFieldValue value : documentField.getValuesList()) {
+    //         values.add(readDocumentFieldValueFromProtobuf(value));
+    //     }
+    // }
 
     public static FetchSearchResultProto.SearchHit.DocumentField convertDocumentFieldToProto(DocumentField documentField) {
         FetchSearchResultProto.SearchHit.DocumentField.Builder builder = FetchSearchResultProto.SearchHit.DocumentField.newBuilder();
@@ -153,46 +153,46 @@ public class DocumentField implements Writeable, ToXContentFragment, Iterable<Ob
         return valueBuilder;
     }
 
-    private Object readDocumentFieldValueFromProtobuf(FetchSearchResultProto.DocumentFieldValue documentFieldValue) throws IOException {
-        if (documentFieldValue.hasValueString()) {
-            return documentFieldValue.getValueString();
-        } else if (documentFieldValue.hasValueInt()) {
-            return documentFieldValue.getValueInt();
-        } else if (documentFieldValue.hasValueLong()) {
-            return documentFieldValue.getValueLong();
-        } else if (documentFieldValue.hasValueFloat()) {
-            return documentFieldValue.getValueFloat();
-        } else if (documentFieldValue.hasValueDouble()) {
-            return documentFieldValue.getValueDouble();
-        } else if (documentFieldValue.hasValueBool()) {
-            return documentFieldValue.getValueBool();
-        } else if (documentFieldValue.getValueByteArrayList().size() > 0) {
-            return documentFieldValue.getValueByteArrayList().toArray();
-        } else if (documentFieldValue.getValueArrayListList().size() > 0) {
-            List<Object> list = new ArrayList<>();
-            for (FetchSearchResultProto.DocumentFieldValue value : documentFieldValue.getValueArrayListList()) {
-                list.add(readDocumentFieldValueFromProtobuf(value));
-            }
-            return list;
-        } else if (documentFieldValue.getValueMapMap().size() > 0) {
-            Map<String, Object> map = Map.of();
-            for (Map.Entry<String, FetchSearchResultProto.DocumentFieldValue> entrySet : documentFieldValue.getValueMapMap().entrySet()) {
-                map.put(entrySet.getKey(), readDocumentFieldValueFromProtobuf(entrySet.getValue()));
-            }
-            return map;
-        } else if (documentFieldValue.hasValueDate()) {
-            return new Date(documentFieldValue.getValueDate());
-        } else if (documentFieldValue.hasValueZonedDate() && documentFieldValue.hasValueZonedTime()) {
-            return ZonedDateTime.ofInstant(
-                Instant.ofEpochMilli(documentFieldValue.getValueZonedTime()),
-                ZoneId.of(documentFieldValue.getValueZonedDate())
-            );
-        } else if (documentFieldValue.hasValueText()) {
-            return new Text(documentFieldValue.getValueText());
-        } else {
-            throw new IOException("Can't read generic value of type [" + documentFieldValue + "]");
-        }
-    }
+    // private Object readDocumentFieldValueFromProtobuf(FetchSearchResultProto.DocumentFieldValue documentFieldValue) throws IOException {
+    //     if (documentFieldValue.hasValueString()) {
+    //         return documentFieldValue.getValueString();
+    //     } else if (documentFieldValue.hasValueInt()) {
+    //         return documentFieldValue.getValueInt();
+    //     } else if (documentFieldValue.hasValueLong()) {
+    //         return documentFieldValue.getValueLong();
+    //     } else if (documentFieldValue.hasValueFloat()) {
+    //         return documentFieldValue.getValueFloat();
+    //     } else if (documentFieldValue.hasValueDouble()) {
+    //         return documentFieldValue.getValueDouble();
+    //     } else if (documentFieldValue.hasValueBool()) {
+    //         return documentFieldValue.getValueBool();
+    //     } else if (documentFieldValue.getValueByteArrayList().size() > 0) {
+    //         return documentFieldValue.getValueByteArrayList().toArray();
+    //     } else if (documentFieldValue.getValueArrayListList().size() > 0) {
+    //         List<Object> list = new ArrayList<>();
+    //         for (FetchSearchResultProto.DocumentFieldValue value : documentFieldValue.getValueArrayListList()) {
+    //             list.add(readDocumentFieldValueFromProtobuf(value));
+    //         }
+    //         return list;
+    //     } else if (documentFieldValue.getValueMapMap().size() > 0) {
+    //         Map<String, Object> map = Map.of();
+    //         for (Map.Entry<String, FetchSearchResultProto.DocumentFieldValue> entrySet : documentFieldValue.getValueMapMap().entrySet()) {
+    //             map.put(entrySet.getKey(), readDocumentFieldValueFromProtobuf(entrySet.getValue()));
+    //         }
+    //         return map;
+    //     } else if (documentFieldValue.hasValueDate()) {
+    //         return new Date(documentFieldValue.getValueDate());
+    //     } else if (documentFieldValue.hasValueZonedDate() && documentFieldValue.hasValueZonedTime()) {
+    //         return ZonedDateTime.ofInstant(
+    //             Instant.ofEpochMilli(documentFieldValue.getValueZonedTime()),
+    //             ZoneId.of(documentFieldValue.getValueZonedDate())
+    //         );
+    //     } else if (documentFieldValue.hasValueText()) {
+    //         return new Text(documentFieldValue.getValueText());
+    //     } else {
+    //         throw new IOException("Can't read generic value of type [" + documentFieldValue + "]");
+    //     }
+    // }
 
     /**
      * The name of the field.

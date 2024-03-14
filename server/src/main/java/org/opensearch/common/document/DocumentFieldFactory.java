@@ -32,6 +32,10 @@
 
 package org.opensearch.common.document;
 
-public class DocumentFieldFactory {
+import java.io.IOException;
+
+public interface DocumentFieldFactory<T> {
+
+    DocumentField createDocumentField(T inputStream) throws IOException;
 
 }

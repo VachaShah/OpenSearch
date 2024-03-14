@@ -40,6 +40,7 @@ import org.opensearch.action.OriginalIndices;
 import org.opensearch.common.Nullable;
 import org.opensearch.common.annotation.PublicApi;
 import org.opensearch.common.document.DocumentField;
+import org.opensearch.common.document.ProtobufDocumentFieldSerde;
 import org.opensearch.common.util.FeatureFlags;
 import org.opensearch.common.xcontent.XContentHelper;
 import org.opensearch.core.ParseField;
@@ -265,9 +266,10 @@ public final class SearchHit implements Writeable, ToXContentObject, Iterable<Do
             source = null;
         }
         this.documentFields = new HashMap<>();
+        ProtobufDocumentFieldSerde documentFieldSerde = new ProtobufDocumentFieldSerde();
         this.searchHitProto.getDocumentFieldsMap().forEach((k, v) -> {
             try {
-                this.documentFields.put(k, new DocumentField(v.toByteArray()));
+                this.documentFields.put(k, documentFieldSerde.createDocumentField(v.toByteString().newInput()));
             } catch (IOException e) {
                 throw new OpenSearchParseException("failed to parse document field", e);
             }
@@ -275,7 +277,7 @@ public final class SearchHit implements Writeable, ToXContentObject, Iterable<Do
         this.metaFields = new HashMap<>();
         this.searchHitProto.getMetaFieldsMap().forEach((k, v) -> {
             try {
-                this.metaFields.put(k, new DocumentField(v.toByteArray()));
+                this.metaFields.put(k, documentFieldSerde.createDocumentField(v.toByteString().newInput()));
             } catch (IOException e) {
                 throw new OpenSearchParseException("failed to parse document field", e);
             }
